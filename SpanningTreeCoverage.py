@@ -1,0 +1,259 @@
+import networkx as nx
+from random import shuffle
+import matplotlib.pyplot as plt
+from math import floor
+import Entities
+
+
+def print_graph(edges, i_o, figure_label=""):
+    plt.figure()
+    G = nx.DiGraph()
+    G.add_edges_from(edges)
+    positions ={}
+    color_map = []
+    for n in G.nodes():
+        positions[n] = (n.row, n.col)
+        if n == edges[0][0]:
+            color_map.append('green')
+        elif n == i_o:
+            color_map.append('blue')
+        else:
+            color_map.append('red')
+        # color_map.append('green' if n == edges[0][0] else 'red')
+
+    f = plt.figure()
+    nx.draw(G=G, pos=positions, node_size=20, font_size=8, node_color=color_map, ax=f.add_subplot(111))
+    f.savefig(figure_label + "_max_path.png", bbox_inches='tight')
+    plt.close('all')
+
+    # plt.axis([-1, 33, -1, 33], 'on')
+    # plt.grid(True)
+
+    plt.show()
+
+
+def create_graph(edgelist):
+    graph = {}
+    for e1, e2 in edgelist:
+        graph.setdefault(e1, []).append(e2)
+        graph.setdefault(e2, []).append(e1)
+    return graph
+
+
+def getShallowGraph(origianl_edges):
+    shallow_graph = {}
+    for e1,e2 in origianl_edges:
+        shallow_e1 = Entities.Slot(floor(e1.row / 2.0), floor(e1.col / 2.0))
+        shallow_e2 = Entities.Slot(floor(e2.row / 2.0), floor(e2.col / 2.0))
+
+        if (shallow_e1.row, shallow_e1.col) == (shallow_e2.row, shallow_e2.col): continue
+
+        if shallow_e1 not in shallow_graph.keys() or not shallow_e2 in shallow_graph[shallow_e1]:
+            shallow_graph.setdefault(shallow_e1, []).append(shallow_e2)
+
+        if shallow_e2 not in shallow_graph.keys() or not shallow_e1 in shallow_graph[shallow_e2]:
+            shallow_graph.setdefault(shallow_e2, []).append(shallow_e1)
+
+    return shallow_graph
+
+
+# Prim's
+def mst(start, graph):
+    closed = set()
+    edges = []
+    q = [(start, start)]
+    while q:
+        # randomize
+        shuffle(q)
+
+
+        v1, v2 = q.pop()
+        if v2 in closed:
+            continue
+        closed.add(v2)
+        edges.append((v1, v2))
+        for v in graph[v2]:
+            if v in graph:
+                q.append((v2, v))
+    del edges[0]
+    assert len(edges) == len(graph)-1
+    return edges
+
+
+def CreateCoveringPath(mst_edges_shallow_graph, initial_slot):
+    covering_path = []
+    origin_slot = initial_slot
+    slot = origin_slot
+    counter = 0
+    while True:
+        counter+=1
+        if counter > 100000:
+            print "ERROR!!!"
+            return
+
+        # remove after finishing debugging
+        #if slot in covering_path:
+        #    print "slot already in! Check parameters"
+
+        covering_path.append(slot)
+        shallow_slot = Entities.Slot(floor(slot.row / 2.0), floor(slot.col / 2.0))
+        # find to where to go next, depend on the mst edges.
+        # Check how much and which corners are in the mst group, then update slot accordingly
+
+        has_downward_edge = (shallow_slot,shallow_slot.GoDown()) in mst_edges_shallow_graph or (shallow_slot.GoDown(), shallow_slot) in mst_edges_shallow_graph
+        has_rightward_edge =  (shallow_slot,shallow_slot.GoRight()) in mst_edges_shallow_graph or (shallow_slot.GoRight(), shallow_slot) in mst_edges_shallow_graph
+        has_leftward_edge = (shallow_slot,shallow_slot.GoLeft()) in mst_edges_shallow_graph or (shallow_slot.GoLeft(), shallow_slot) in mst_edges_shallow_graph
+        has_upward_edge = (shallow_slot,shallow_slot.GoUp()) in mst_edges_shallow_graph or (shallow_slot.GoUp(), shallow_slot) in mst_edges_shallow_graph
+
+        bl_corner_in_mst = False
+        br_corner_in_mst = False
+        ul_corner_in_mst = False
+        ur_corner_in_mst = False
+
+        if slot.row % 2 == 0 and slot.col % 2 == 0:
+            if has_downward_edge or has_rightward_edge:
+                br_corner_in_mst = True
+            if has_upward_edge:
+                br_corner_in_mst = True
+                ur_corner_in_mst = True
+            if has_leftward_edge:
+                bl_corner_in_mst = True
+                br_corner_in_mst = True
+        elif slot.row % 2 == 0 and slot.col % 2 != 0:
+            if has_downward_edge or has_leftward_edge:
+                bl_corner_in_mst = True
+            if has_upward_edge:
+                bl_corner_in_mst = True
+                ul_corner_in_mst = True
+            if has_rightward_edge:
+                bl_corner_in_mst = True
+                br_corner_in_mst = True
+        elif slot.row % 2 != 0 and slot.col % 2 == 0:
+            if has_rightward_edge or has_upward_edge:
+                ur_corner_in_mst = True
+            if has_downward_edge:
+                br_corner_in_mst = True
+                ur_corner_in_mst = True
+            if has_leftward_edge:
+                ur_corner_in_mst = True
+                ul_corner_in_mst = True
+        elif slot.row % 2 != 0 and slot.col % 2 != 0:
+            if has_leftward_edge or has_upward_edge:
+                ul_corner_in_mst = True
+            if has_downward_edge:
+                bl_corner_in_mst = True
+                ul_corner_in_mst = True
+            if has_rightward_edge:
+                ul_corner_in_mst = True
+                ur_corner_in_mst = True
+
+        last_slot = covering_path[len(covering_path)-2]
+
+        # check o see if only one vertex was in the mst
+        if br_corner_in_mst and not (ur_corner_in_mst or bl_corner_in_mst or ul_corner_in_mst):
+            if slot.GoDown() == last_slot or slot == last_slot:
+                slot = slot.GoRight()
+            elif slot.GoRight() == last_slot:
+                slot = slot.GoDown()
+        elif ur_corner_in_mst and not (br_corner_in_mst or bl_corner_in_mst or ul_corner_in_mst):
+            if slot.GoRight() == last_slot or slot == last_slot:
+                slot = slot.GoUp()
+            elif slot.GoUp() == last_slot:
+                slot = slot.GoRight()
+        elif bl_corner_in_mst and not (ul_corner_in_mst or ur_corner_in_mst or br_corner_in_mst):
+            if slot.GoLeft() == last_slot or slot == initial_slot:
+                slot = slot.GoDown()
+            elif slot.GoDown() == last_slot:
+                slot = slot.GoLeft()
+        elif ul_corner_in_mst and not (bl_corner_in_mst or br_corner_in_mst or ur_corner_in_mst):
+            if slot.GoUp() == last_slot or slot == initial_slot:
+                slot = slot.GoLeft()
+            elif slot.GoLeft() == last_slot:
+                slot = slot.GoUp()
+        # check to see if exactly two vertices are in the mst
+        elif bl_corner_in_mst and br_corner_in_mst and not (ul_corner_in_mst or ur_corner_in_mst):
+            if slot.GoLeft() == last_slot or slot == initial_slot:
+                slot = slot.GoRight()
+            elif slot.GoRight() == last_slot:
+                slot = slot.GoLeft()
+            else:
+                print "error 1"
+        elif ul_corner_in_mst and ur_corner_in_mst and not (bl_corner_in_mst or br_corner_in_mst):
+            if slot.GoRight() == last_slot or slot == initial_slot:
+                slot = slot.GoLeft()
+            elif slot.GoLeft() == last_slot:
+                slot = slot.GoRight()
+        elif br_corner_in_mst and ur_corner_in_mst and not (bl_corner_in_mst or ul_corner_in_mst):
+            if slot.GoDown() == last_slot or slot == initial_slot:
+                slot = slot.GoUp()
+            elif slot.GoUp() == last_slot:
+                slot = slot.GoDown()
+        elif bl_corner_in_mst and ul_corner_in_mst and not (br_corner_in_mst or ur_corner_in_mst):
+            if slot.GoUp() == last_slot or slot == initial_slot:
+                slot = slot.GoDown()
+            elif slot.GoDown() == last_slot:
+                slot = slot.GoUp()
+        # check for exactly 3 vertices
+        elif br_corner_in_mst and bl_corner_in_mst and ul_corner_in_mst and not ur_corner_in_mst:
+            if slot.GoUp() == last_slot or slot == initial_slot:
+                slot = slot.GoRight()
+            elif slot.GoRight() == last_slot:
+                slot = slot.GoUp()
+        elif bl_corner_in_mst and ul_corner_in_mst and ur_corner_in_mst and not br_corner_in_mst:
+            if slot.GoDown() == last_slot or slot == initial_slot:
+                slot = slot.GoRight()
+            elif slot.GoRight() == last_slot:
+                slot = slot.GoDown()
+        elif ul_corner_in_mst and ur_corner_in_mst and br_corner_in_mst and not bl_corner_in_mst:
+            if slot.GoLeft() == last_slot or slot == initial_slot:
+                slot = slot.GoDown()
+            elif slot.GoDown() == last_slot:
+                slot = slot.GoLeft()
+        elif ur_corner_in_mst and br_corner_in_mst and bl_corner_in_mst and not ul_corner_in_mst:
+            if slot.GoUp() == last_slot or slot == initial_slot:
+                slot = slot.GoLeft()
+            elif slot.GoLeft() == last_slot:
+                slot = slot.GoUp()
+        else:
+            print "error has occured!"
+
+        if slot == origin_slot:
+            break
+
+    return covering_path
+
+
+def get_edges_for_full_graph(width, height):
+    edges = []
+    for row in xrange(height):
+        for col in xrange(width):
+            if row < height-1:
+                edges.append((Entities.Slot(row, col), Entities.Slot(row, col).GoDown()))
+            if col < width-1:
+                edges.append((Entities.Slot(row, col), Entities.Slot(row, col).GoRight()))
+    return edges
+
+
+def get_random_coverage_strategy(size, i_r, i_o=None, print_mst=False, figure_label=""):
+    edges = get_edges_for_full_graph(size, size)
+    shallow_graph = getShallowGraph(edges)
+    shallow_init_pos = Entities.Slot(floor(i_r.row / 2.0), floor(i_r.col / 2.0))
+    mst_edges_shallow_graph = mst(shallow_init_pos, shallow_graph)
+    covering_path = CreateCoveringPath(mst_edges_shallow_graph, i_r)
+    if print_mst:
+        covering_path_edges = []
+        for i in xrange(0, len(covering_path)-1):
+            covering_path_edges.append((covering_path[i], covering_path[i+1]))
+        print_graph(covering_path_edges, i_o, figure_label=figure_label)
+    return covering_path
+
+
+def display_path(covering_path):
+    covering_path_edges = []
+    for i in xrange(0, len(covering_path) - 1):
+        covering_path_edges.append((covering_path[i], covering_path[i + 1]))
+    print_graph(covering_path_edges, covering_path_edges[0][0])
+
+
+if __name__ == '__main__':
+    get_random_coverage_strategy(32,Entities.Slot(16,16),True)
