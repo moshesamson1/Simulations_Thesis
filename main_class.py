@@ -1,5 +1,3 @@
-from threading import _BoundedSemaphore
-
 from Entities import *
 from random import randint
 import random as rnd
@@ -24,18 +22,18 @@ def get_average_gain_no_information_job(board_size_x, board_size_y, seed_code):
     rnd.seed(seed_code)
     b = Board(board_size_x, board_size_y)
 
-    agent_r = Agent("R", "random", randint(0, board_size_x - 1), randint(0, board_size_y - 1), board=b)
+    agent_r = Agent("R", StrategyEnum.RandomSTC, randint(0, board_size_x - 1), randint(0, board_size_y - 1), board=b)
     print str(agent_r.InitPosX) + "," + str(agent_r.InitPosY)
     # add again randomness to the system
     rnd.seed(rnd.Random().random())
 
-    agent_o = Agent("O", "random", randint(0, board_size_x - 1), randint(0, board_size_y - 1), board=b)
+    agent_o = Agent("O", StrategyEnum.RandomSTC, randint(0, board_size_x - 1), randint(0, board_size_y - 1), board=b)
     print str(agent_o.InitPosX) + "," + str(agent_o.InitPosY)
     game = Game(b, agent_r, agent_o)
-    game.RunGame()
-    gain = game.GetRGain()
+    game.run_game()
+    gain = game.get_r_gain()
 
-    if not (gain + game.GetOGain() == board_size_x * board_size_y):
+    if not (gain + game.get_o_gain() == board_size_x * board_size_y):
         print game._board
         print "Error: gains are wrong!"
     return gain
@@ -46,7 +44,7 @@ def get_average_gain_full_information_job(board_size_x, board_size_y):
 
     o_init_size_x = randint(0, board_size_x - 1)
     o_init_size_y = randint(0, board_size_y - 1)
-    agent_o_pos = (o_init_size_x, o_init_size_y);
+    agent_o_pos = (o_init_size_x, o_init_size_y)
 
     r_init_size_x = randint(0, board_size_x - 1)
     r_init_size_y = randint(0, board_size_y - 1)
@@ -60,14 +58,14 @@ def get_average_gain_full_information_job(board_size_x, board_size_y):
     # if rnd.uniform(0, 1) < 0.5:
     #    strategy = "optimalA"
     # else:
-    strategy = "HorizontalCoverage"
+    strategy = StrategyEnum.HorizontalCoverageCircular
     agent_o = Agent("O", strategy, agent_o_pos[0], agent_o_pos[1])
-    agent_r = Agent("R", "FullKnowledgeInterception", agent_r_pos[0], agent_r_pos[1])
+    agent_r = Agent("R", StrategyEnum.FullKnowledgeInterceptionCircular, agent_r_pos[0], agent_r_pos[1])
     game = Game(b, agent_r, agent_o)
-    game.RunGame()
-    gain = game.GetRGain()
+    game.run_game()
+    gain = game.get_r_gain()
 
-    assert (gain + game.GetOGain() == board_size_x * board_size_y)
+    assert (gain + game.get_o_gain() == board_size_x * board_size_y)
 
     return gain
 
@@ -87,10 +85,10 @@ def get_average_gain_no_information(iterations, board_size_x, board_size_y):
 
 
 def get_mean_gain_set__sr__ir_random__so__io_job(board_size, agent_r, b):
-    agentO = Agent("O", "random", randint(0, board_size - 1), randint(0, board_size - 1), board=b)
+    agentO = Agent("O", StrategyEnum.RandomSTC, randint(0, board_size - 1), randint(0, board_size - 1), board=b)
     game = Game(b, agent_r, agentO)
-    game.RunGame()
-    return game.GetRGain()
+    game.run_game()
+    return game.get_r_gain()
 
 
 def get_mean_gain_set__sr__ir__so_random__io_job(agent_r, i_o, b):
@@ -102,7 +100,7 @@ def get_mean_gain_set__sr__ir__so_random__io_job(agent_r, i_o, b):
     # different positions.
     # Then, we rotate the steps list until opponent start from initial position. This way, all the opponents will have
     # the save coverage path, but each one will start from different location.
-    agent_o = Agent("O", "random", 0, 0, board=b)
+    agent_o = Agent("O", StrategyEnum.RandomSTC, 0, 0, board=b)
     initial_slot_index = agent_o.steps.index(Slot(i_o.row, i_o.col))
     agent_o.InitPosX = i_o.row
     agent_o.InitPosY = i_o.col
@@ -111,8 +109,8 @@ def get_mean_gain_set__sr__ir__so_random__io_job(agent_r, i_o, b):
     # Set randomness back
     rnd.seed(os.urandom(100))
     game = Game(Board(b.Rows, b.Cols), agent_r, agent_o)
-    game.RunGame()
-    gain = game.GetRGain()
+    game.run_game()
+    gain = game.get_r_gain()
     # print "init: " + str(i_o) + ", gain: " + str(gain)
     return gain
 
@@ -147,7 +145,7 @@ def compute_expected_profits_for__sr_set__ir_random__so__io(iterations, board_si
     for seed_code in seeds:
         rnd.seed(seed_code)
         b = Board(board_size, board_size)
-        agent_r = Agent("R", "random", int(board_size / 2), int(board_size / 2), board=b)
+        agent_r = Agent("R", StrategyEnum.RandomSTC, int(board_size / 2), int(board_size / 2), board=b)
 
         rnd.seed(rnd.Random().random())
 
@@ -184,16 +182,16 @@ def compute_expected_profits_given_o(board_size, seeds_count_o, given_io, given_
 
         # Set seed for S_r
         rnd.seed(Sr_seed_code)
-        agent_r = Agent("R", "random", given_ir[0], given_ir[1], board=b)
+        agent_r = Agent("R", StrategyEnum.RandomSTC, given_ir[0], given_ir[1], board=b)
 
         # Average over all possible strategies
         sum_gains = 0
         for So_seed_code in s_o_seeds:
             rnd.seed(So_seed_code)
-            agent_o = Agent("O", "random", given_io[0], given_io[1], board=b)
+            agent_o = Agent("O", StrategyEnum.RandomSTC, given_io[0], given_io[1], board=b)
             game = Game(Board(b.Rows, b.Cols), agent_r, agent_o)
-            game.RunGame()
-            gain = game.GetRGain()
+            game.run_game()
+            gain = game.get_r_gain()
             sum_gains += gain
 
         values.append(sum_gains / seeds_count_o)
@@ -205,9 +203,9 @@ def compute_expected_profits_given_o(board_size, seeds_count_o, given_io, given_
                                                       Slot(given_io[0], given_io[1]),
                                                       print_mst=True, figure_label=figure_label)
     for i in xrange(len(s_r_seeds)):
-        print str(s_r_seeds[i]) + " " + str(values[i])
+        print "(seed, value): {0} {1}".format(str(s_r_seeds[i]), str(values[i]))
 
-    return s_r_seeds, values
+    return s_r_seeds, values, max_val
 
 
 def compute_expected_profits_for__sr_set__ir__so_random__io(board_size, seeds_count):
@@ -217,7 +215,7 @@ def compute_expected_profits_for__sr_set__ir__so_random__io(board_size, seeds_co
     mean_gains = {}
     for seed_code in seeds:
         rnd.seed(seed_code)
-        agent_r = Agent("R", "random", int(board_size / 2), int(board_size / 2), board=b)
+        agent_r = Agent("R", StrategyEnum.RandomSTC, int(board_size / 2), int(board_size / 2), board=b)
         # rnd.seed(rnd.Random().random())
         rnd.seed(os.urandom(100))
 
@@ -228,7 +226,7 @@ def compute_expected_profits_for__sr_set__ir__so_random__io(board_size, seeds_co
     max_seed = max(mean_gains.iteritems(), key=operator.itemgetter(1))[0]
     print "max_seed : " + str(max_seed)
     rnd.seed(max_seed)
-    agent_r = Agent("R", "random", int(board_size / 2), int(board_size / 2), board=b)
+    agent_r = Agent("R", StrategyEnum.RandomSTC, int(board_size / 2), int(board_size / 2), board=b)
     SpanningTreeCoverage.get_random_coverage_strategy(board_size, Slot(agent_r.InitPosX, agent_r.InitPosY), True)
     return max(mean_gains)
 
@@ -246,16 +244,16 @@ def get_turns_amount(path_seed):
         p1 = path[i]
         p2 = path[i + 1]
         p3 = path[i + 2]
-        if p1.GoRight() == p2 and p2.GoRight() != p3:
+        if p1.go_east() == p2 and p2.go_east() != p3:
             turns += 1
             continue
-        if p1.GoUp() == p2 and p2.GoUp() != p3:
+        if p1.go_north() == p2 and p2.go_north() != p3:
             turns += 1
             continue
-        if p1.GoDown() == p2 and p2.GoDown() != p3:
+        if p1.go_south() == p2 and p2.go_south() != p3:
             turns += 1
             continue
-        if p1.GoLeft() == p2 and p2.GoLeft() != p3:
+        if p1.go_west() == p2 and p2.go_west() != p3:
             turns += 1
             continue
 
@@ -339,9 +337,9 @@ def send_files_via_email(text, title):
 
 def compute_and_analyze_results_given_o_position(seeds_amount, i_o, _board_size, i_r, send_email):
     t0 = time.time()
-    label = "size" + str(_board_size) + ", Io=" + str(i_o) + ", Ir=" + str(i_r) + ", seeds: " + str(seeds_amount)
-    seeds, values = compute_expected_profits_given_o(board_size=_board_size, seeds_count_o=seeds_amount, given_io=i_o,
-                                                     given_ir=i_r, figure_label=label)
+    label = "size{0}, Io={1}, Ir={2}, seeds: {3}".format(str(_board_size), str(i_o), str(i_r), str(seeds_amount))
+    seeds, values, max_val = compute_expected_profits_given_o(board_size=_board_size, seeds_count_o=seeds_amount,
+                                                              given_io=i_o, given_ir=i_r, figure_label=label)
     print seeds
     print values
     analyze_results(seeds, values, figure_label=label)
@@ -349,8 +347,7 @@ def compute_and_analyze_results_given_o_position(seeds_amount, i_o, _board_size,
     print "elapsed: " + str(t1 - t0)
 
     if send_email:
-        send_files_via_email(text="Execution took " + str(t1 - t0) + " seconds.",
-                             title=label)
+        send_files_via_email(text="Execution took " + str(t1 - t0) + " seconds. max_val: " + str(max_val), title=label)
 
     print "\n=======================================================================================================\n"
 

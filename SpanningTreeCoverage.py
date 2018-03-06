@@ -100,10 +100,10 @@ def CreateCoveringPath(mst_edges_shallow_graph, initial_slot):
         # find to where to go next, depend on the mst edges.
         # Check how much and which corners are in the mst group, then update slot accordingly
 
-        has_downward_edge = (shallow_slot,shallow_slot.GoDown()) in mst_edges_shallow_graph or (shallow_slot.GoDown(), shallow_slot) in mst_edges_shallow_graph
-        has_rightward_edge =  (shallow_slot,shallow_slot.GoRight()) in mst_edges_shallow_graph or (shallow_slot.GoRight(), shallow_slot) in mst_edges_shallow_graph
-        has_leftward_edge = (shallow_slot,shallow_slot.GoLeft()) in mst_edges_shallow_graph or (shallow_slot.GoLeft(), shallow_slot) in mst_edges_shallow_graph
-        has_upward_edge = (shallow_slot,shallow_slot.GoUp()) in mst_edges_shallow_graph or (shallow_slot.GoUp(), shallow_slot) in mst_edges_shallow_graph
+        has_downward_edge = (shallow_slot,shallow_slot.go_south()) in mst_edges_shallow_graph or (shallow_slot.go_south(), shallow_slot) in mst_edges_shallow_graph
+        has_rightward_edge =  (shallow_slot,shallow_slot.go_east()) in mst_edges_shallow_graph or (shallow_slot.go_east(), shallow_slot) in mst_edges_shallow_graph
+        has_leftward_edge = (shallow_slot,shallow_slot.go_west()) in mst_edges_shallow_graph or (shallow_slot.go_west(), shallow_slot) in mst_edges_shallow_graph
+        has_upward_edge = (shallow_slot,shallow_slot.go_north()) in mst_edges_shallow_graph or (shallow_slot.go_north(), shallow_slot) in mst_edges_shallow_graph
 
         bl_corner_in_mst = False
         br_corner_in_mst = False
@@ -151,69 +151,69 @@ def CreateCoveringPath(mst_edges_shallow_graph, initial_slot):
 
         # check o see if only one vertex was in the mst
         if br_corner_in_mst and not (ur_corner_in_mst or bl_corner_in_mst or ul_corner_in_mst):
-            if slot.GoDown() == last_slot or slot == last_slot:
-                slot = slot.GoRight()
-            elif slot.GoRight() == last_slot:
-                slot = slot.GoDown()
+            if slot.go_south() == last_slot or slot == last_slot:
+                slot = slot.go_east()
+            elif slot.go_east() == last_slot:
+                slot = slot.go_south()
         elif ur_corner_in_mst and not (br_corner_in_mst or bl_corner_in_mst or ul_corner_in_mst):
-            if slot.GoRight() == last_slot or slot == last_slot:
-                slot = slot.GoUp()
-            elif slot.GoUp() == last_slot:
-                slot = slot.GoRight()
+            if slot.go_east() == last_slot or slot == last_slot:
+                slot = slot.go_north()
+            elif slot.go_north() == last_slot:
+                slot = slot.go_east()
         elif bl_corner_in_mst and not (ul_corner_in_mst or ur_corner_in_mst or br_corner_in_mst):
-            if slot.GoLeft() == last_slot or slot == initial_slot:
-                slot = slot.GoDown()
-            elif slot.GoDown() == last_slot:
-                slot = slot.GoLeft()
+            if slot.go_west() == last_slot or slot == initial_slot:
+                slot = slot.go_south()
+            elif slot.go_south() == last_slot:
+                slot = slot.go_west()
         elif ul_corner_in_mst and not (bl_corner_in_mst or br_corner_in_mst or ur_corner_in_mst):
-            if slot.GoUp() == last_slot or slot == initial_slot:
-                slot = slot.GoLeft()
-            elif slot.GoLeft() == last_slot:
-                slot = slot.GoUp()
+            if slot.go_north() == last_slot or slot == initial_slot:
+                slot = slot.go_west()
+            elif slot.go_west() == last_slot:
+                slot = slot.go_north()
         # check to see if exactly two vertices are in the mst
         elif bl_corner_in_mst and br_corner_in_mst and not (ul_corner_in_mst or ur_corner_in_mst):
-            if slot.GoLeft() == last_slot or slot == initial_slot:
-                slot = slot.GoRight()
-            elif slot.GoRight() == last_slot:
-                slot = slot.GoLeft()
+            if slot.go_west() == last_slot or slot == initial_slot:
+                slot = slot.go_east()
+            elif slot.go_east() == last_slot:
+                slot = slot.go_west()
             else:
                 print "error 1"
         elif ul_corner_in_mst and ur_corner_in_mst and not (bl_corner_in_mst or br_corner_in_mst):
-            if slot.GoRight() == last_slot or slot == initial_slot:
-                slot = slot.GoLeft()
-            elif slot.GoLeft() == last_slot:
-                slot = slot.GoRight()
+            if slot.go_east() == last_slot or slot == initial_slot:
+                slot = slot.go_west()
+            elif slot.go_west() == last_slot:
+                slot = slot.go_east()
         elif br_corner_in_mst and ur_corner_in_mst and not (bl_corner_in_mst or ul_corner_in_mst):
-            if slot.GoDown() == last_slot or slot == initial_slot:
-                slot = slot.GoUp()
-            elif slot.GoUp() == last_slot:
-                slot = slot.GoDown()
+            if slot.go_south() == last_slot or slot == initial_slot:
+                slot = slot.go_north()
+            elif slot.go_north() == last_slot:
+                slot = slot.go_south()
         elif bl_corner_in_mst and ul_corner_in_mst and not (br_corner_in_mst or ur_corner_in_mst):
-            if slot.GoUp() == last_slot or slot == initial_slot:
-                slot = slot.GoDown()
-            elif slot.GoDown() == last_slot:
-                slot = slot.GoUp()
+            if slot.go_north() == last_slot or slot == initial_slot:
+                slot = slot.go_south()
+            elif slot.go_south() == last_slot:
+                slot = slot.go_north()
         # check for exactly 3 vertices
         elif br_corner_in_mst and bl_corner_in_mst and ul_corner_in_mst and not ur_corner_in_mst:
-            if slot.GoUp() == last_slot or slot == initial_slot:
-                slot = slot.GoRight()
-            elif slot.GoRight() == last_slot:
-                slot = slot.GoUp()
+            if slot.go_north() == last_slot or slot == initial_slot:
+                slot = slot.go_east()
+            elif slot.go_east() == last_slot:
+                slot = slot.go_north()
         elif bl_corner_in_mst and ul_corner_in_mst and ur_corner_in_mst and not br_corner_in_mst:
-            if slot.GoDown() == last_slot or slot == initial_slot:
-                slot = slot.GoRight()
-            elif slot.GoRight() == last_slot:
-                slot = slot.GoDown()
+            if slot.go_south() == last_slot or slot == initial_slot:
+                slot = slot.go_east()
+            elif slot.go_east() == last_slot:
+                slot = slot.go_south()
         elif ul_corner_in_mst and ur_corner_in_mst and br_corner_in_mst and not bl_corner_in_mst:
-            if slot.GoLeft() == last_slot or slot == initial_slot:
-                slot = slot.GoDown()
-            elif slot.GoDown() == last_slot:
-                slot = slot.GoLeft()
+            if slot.go_west() == last_slot or slot == initial_slot:
+                slot = slot.go_south()
+            elif slot.go_south() == last_slot:
+                slot = slot.go_west()
         elif ur_corner_in_mst and br_corner_in_mst and bl_corner_in_mst and not ul_corner_in_mst:
-            if slot.GoUp() == last_slot or slot == initial_slot:
-                slot = slot.GoLeft()
-            elif slot.GoLeft() == last_slot:
-                slot = slot.GoUp()
+            if slot.go_north() == last_slot or slot == initial_slot:
+                slot = slot.go_west()
+            elif slot.go_west() == last_slot:
+                slot = slot.go_north()
         else:
             print "error has occured!"
 
@@ -228,9 +228,9 @@ def get_edges_for_full_graph(width, height):
     for row in xrange(height):
         for col in xrange(width):
             if row < height-1:
-                edges.append((Entities.Slot(row, col), Entities.Slot(row, col).GoDown()))
+                edges.append((Entities.Slot(row, col), Entities.Slot(row, col).go_south()))
             if col < width-1:
-                edges.append((Entities.Slot(row, col), Entities.Slot(row, col).GoRight()))
+                edges.append((Entities.Slot(row, col), Entities.Slot(row, col).go_east()))
     return edges
 
 
