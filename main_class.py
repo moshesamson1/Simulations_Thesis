@@ -7,12 +7,11 @@ from joblib import Parallel, delayed
 import multiprocessing
 import numpy as np
 import SpanningTreeCoverage
-import time
-import os
 import operator
-import matplotlib
 import matplotlib.pyplot as plt
-from pylab import *
+import time
+import pylab
+import os
 
 So_seed = 123456789
 
@@ -166,12 +165,15 @@ def compute_expected_profits_for__sr_set__ir_random__so__io(iterations, board_si
 def compute_expected_profits_given_o(board_size, seeds_count_o, given_io, given_ir, figure_label="", seeds_count_r=1):
     """
     This function checks if there is a better-than-random strategy for R given only O's position and not its strategy.
-    :param given_io:
+    :param figure_label: optional figure's label
+    :param given_ir: given initial position for r
+    :param given_io: given initial position for o
     :type board_size: int
-    :type seeds_count: int
+    :type seeds_count_o: int
+    :type seeds_count_r: int
     """
-    s_r_seeds = rnd.sample(xrange(1, 1000000), seeds_count_r)
-    s_o_seeds = rnd.sample(xrange(1, 1000000), seeds_count_o)
+    s_r_seeds = rnd.sample(xrange(1, 1000000000), seeds_count_r)
+    s_o_seeds = rnd.sample(xrange(1, 1000000000), seeds_count_o)
 
     # save max r_code to print in the end
     max_val = (-1, -1)
@@ -194,13 +196,13 @@ def compute_expected_profits_given_o(board_size, seeds_count_o, given_io, given_
             gain = game.GetRGain()
             sum_gains += gain
 
-
-        values.append(sum_gains/seeds_count_o)
-        if sum_gains/seeds_count_o > max_val[0]:
-            max_val = (sum_gains/seeds_count_o, Sr_seed_code)
+        values.append(sum_gains / seeds_count_o)
+        if sum_gains / seeds_count_o > max_val[0]:
+            max_val = (sum_gains / seeds_count_o, Sr_seed_code)
 
     rnd.seed(max_val[1])
-    SpanningTreeCoverage.get_random_coverage_strategy(board_size, Slot(given_ir[0], given_ir[1]), Slot(given_io[0], given_io[1]),
+    SpanningTreeCoverage.get_random_coverage_strategy(board_size, Slot(given_ir[0], given_ir[1]),
+                                                      Slot(given_io[0], given_io[1]),
                                                       print_mst=True, figure_label=figure_label)
     for i in xrange(len(s_r_seeds)):
         print str(s_r_seeds[i]) + " " + str(values[i])
@@ -210,14 +212,10 @@ def compute_expected_profits_given_o(board_size, seeds_count_o, given_io, given_
 
 def compute_expected_profits_for__sr_set__ir__so_random__io(board_size, seeds_count):
     seeds = range(0, seeds_count)
-    # means_by_So = {}
 
-    # for i in So_seeds:
-    #     So_seed = i
-
+    b = Board(board_size, board_size)
     mean_gains = {}
     for seed_code in seeds:
-        b = Board(board_size, board_size)
         rnd.seed(seed_code)
         agent_r = Agent("R", "random", int(board_size / 2), int(board_size / 2), board=b)
         # rnd.seed(rnd.Random().random())
@@ -225,10 +223,7 @@ def compute_expected_profits_for__sr_set__ir__so_random__io(board_size, seeds_co
 
         set_r_gain = get_mean_gain_set__sr__ir__so_random__io(board_size, agent_r, b)
         mean_gains[seed_code] = set_r_gain
-        print "seed_code: " + str(seed_code) + ", value: " + str(set_r_gain)
-
-    # means_by_So[So_seed] = mean_gains
-    # print means_by_So
+        print "seed_code: {0}, value: {1}".format(str(seed_code), str(set_r_gain))
 
     max_seed = max(mean_gains.iteritems(), key=operator.itemgetter(1))[0]
     print "max_seed : " + str(max_seed)
@@ -247,7 +242,7 @@ def get_turns_amount(path_seed):
     rnd.seed(path_seed)
     path = SpanningTreeCoverage.get_random_coverage_strategy(32, Slot(31, 31))
     turns = 0
-    for i in xrange(len(path)-2):
+    for i in xrange(len(path) - 2):
         p1 = path[i]
         p2 = path[i + 1]
         p3 = path[i + 2]
@@ -268,22 +263,21 @@ def get_turns_amount(path_seed):
     # SpanningTreeCoverage.display_path(path)
 
 
-def get_heatmap_intersection_value(path_seed, i_o, i_r):
+def get_heat_map_intersection_value(path_seed, i_o, i_r):
     rnd.seed(path_seed)
     path = SpanningTreeCoverage.get_random_coverage_strategy(32, Slot(i_r.row, i_r.col))
     hm_value = 0
     for time_t in xrange(len(path)):
         p_t = path[time_t]
-        eucl_dist = np.fabs(p_t.row - i_o.row) + np.fabs(p_t.col - i_o.col)
-        if eucl_dist > time_t:
+        euclidean_dist = np.fabs(p_t.row - i_o.row) + np.fabs(p_t.col - i_o.col)
+        if euclidean_dist > time_t:
             continue
         else:
-            # if time_t-eucl_dist > 63: print "AHHHHHHH!!!!!"
-            hm_value += np.power(1.1, time_t-eucl_dist)
+            hm_value += np.power(1.1, time_t - euclidean_dist)
     return hm_value
 
 
-def analayze_results(seeds, values, figure_label=""):
+def analyze_results(seeds, values, figure_label=""):
     f, ax = plt.subplots(1)
 
     # turns_values = [get_turns_amount(v) for v in seeds]
@@ -292,13 +286,13 @@ def analayze_results(seeds, values, figure_label=""):
     #     print t
     # plt.plot(values, norm_turns_values, 'ro')
 
-    hm_values = [get_heatmap_intersection_value(v, Slot(16, 16), Slot(31, 31)) for v in seeds]
+    hm_values = [get_heat_map_intersection_value(v, Slot(16, 16), Slot(31, 31)) for v in seeds]
     norm_hm_values = [float(i) / max(hm_values) for i in hm_values]
     ax.plot(values, hm_values, 'bo')
 
     # compute and show regression line
-    (m, b) = polyfit(values, hm_values, 1)
-    yp = polyval([m, b], values)
+    (m, b) = pylab.polyfit(values, hm_values, 1)
+    yp = pylab.polyval([m, b], values)
     ax.plot(values, yp, 'r')
     plt.grid('on')
 
@@ -330,7 +324,7 @@ def send_files_via_email(text, title):
 
     msg.attach(MIMEText(text))
 
-    for f in ["max_path.png", "fcc_hmValues_graph.png"]:
+    for f in [title+"_max_path.png", title+"_fcc_hmValues_graph.png"]:
         with open(f, "rb") as fil:
             part = MIMEApplication(
                 fil.read(),
@@ -344,28 +338,27 @@ def send_files_via_email(text, title):
 
 
 def compute_and_analyze_results_given_o_position(seeds_amount, i_o, _board_size, i_r, send_email):
-
     t0 = time.time()
-    label = "size"+str(_board_size) + ", Io="+str(i_o) + ", Ir=" + str(i_r) + ", seeds: " + str(seeds_amount)
+    label = "size" + str(_board_size) + ", Io=" + str(i_o) + ", Ir=" + str(i_r) + ", seeds: " + str(seeds_amount)
     seeds, values = compute_expected_profits_given_o(board_size=_board_size, seeds_count_o=seeds_amount, given_io=i_o,
                                                      given_ir=i_r, figure_label=label)
     print seeds
     print values
-    analayze_results(seeds, values, figure_label=label)
+    analyze_results(seeds, values, figure_label=label)
     t1 = time.time()
     print "elapsed: " + str(t1 - t0)
 
     if send_email:
         send_files_via_email(text="Execution took " + str(t1 - t0) + " seconds.",
-                         title="size32, Io=(16,16), Ir=(31,31), seeds: " + str(seeds_amount))
+                             title=label)
 
     print "\n=======================================================================================================\n"
 
 
 def main():
     # compute_and_analyze_results_given_o_position(seeds_amount = 100, i_o = (16, 16), _board_size = 32, i_r = (31,31))
-    compute_and_analyze_results_given_o_position(seeds_amount = 1000, i_o = (0, 0), _board_size = 32, i_r = (31,31),
-                                                 send_email = False)
+    compute_and_analyze_results_given_o_position(seeds_amount=1000, i_o=(0, 0), _board_size=32, i_r=(31, 31),
+                                                 send_email=True)
 
 
 if __name__ == "__main__":
