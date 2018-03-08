@@ -22,8 +22,8 @@ class Board:
 class Slot:
     def __init__(self, x, y):
         self.has_been_visited = False
-        self.CurrentlyOccupied = False
-        self.BeenFirstCoveredBy = "*"
+        self.is_occupied = False
+        self.covered_by = "*"
         self.row = x
         self.col = y
         self.Name = "("+str(x) + "," + str(y) + ")"
@@ -50,7 +50,7 @@ class Slot:
         return Slot(self.row + 1, self.col)
 
     def __str__(self):
-        return "{0},{1},{2}".format(str(int(self.row)), str(int(self.col)), str(self.BeenFirstCoveredBy))
+        return "{0},{1},{2}".format(str(int(self.row)), str(int(self.col)), str(self.covered_by))
 
     def __repr__(self):
         return str(self)
@@ -65,7 +65,7 @@ class StrategyEnum:
 
 
 class Agent:
-    def __init__(self, name, strategy, x, y, board, agent_o=None):
+    def __init__(self, name, strategy, x, y, board=None, agent_o=None):
         # type: (str, StrategyEnum, int, int, Board, Agent) -> None
         assert isinstance(strategy, StrategyEnum)
 
@@ -76,14 +76,15 @@ class Agent:
         self.gameBoard = board
 
         if self.Strategy == StrategyEnum.VerticalCoverageCircular:
-            self.steps = GetVerticalCoverageSteps(self, len(self.gameBoard.Slots), len(self.gameBoard.Slots[0]))
+            self.steps = get_vertical_coverage_steps(self, len(self.gameBoard.Slots), len(self.gameBoard.Slots[0]))
         elif self.Strategy == StrategyEnum.HorizontalCoverageCircular:
-            self.steps = GetHorizontalCoverageSteps(self, len(self.gameBoard.Slots), len(self.gameBoard.Slots[0]))
+            self.steps = get_horizontal_coverage_steps(self, len(self.gameBoard.Slots), len(self.gameBoard.Slots[0]))
         elif self.Strategy == StrategyEnum.FullKnowledgeInterceptionCircular:
-            self.steps = RunAgentOverBoardFullKnowledgeInterceptionStrategy(self, agent_o, len(self.gameBoard.Slots),
-                                                                            len(self.gameBoard.Slots[0]))
+            self.steps = run_agent_over_board_full_knowledge_interception_strategy(self, agent_o,
+                                                                                   len(self.gameBoard.Slots),
+                                                                                   len(self.gameBoard.Slots[0]))
         elif self.Strategy == StrategyEnum.QuartersCoverageCircular:
-            self.steps = GetQuartersCoverageSteps(self, len(self.gameBoard.Slots), len(self.gameBoard.Slots[0]))
+            self.steps = get_quarters_coverage_steps(self, len(self.gameBoard.Slots), len(self.gameBoard.Slots[0]))
         elif self.Strategy == StrategyEnum.RandomSTC:
             self.steps = SpanningTreeCoverage.get_random_coverage_strategy(len(self.gameBoard.Slots),
                                                                            Slot(self.InitPosX, self.InitPosY),
@@ -109,13 +110,13 @@ class Game:
                 step_r = steps_r[i]
                 if not self._board.Slots[int(step_r.row)][int(step_r.col)].has_been_visited:
                     self._board.Slots[int(step_r.row)][int(step_r.col)].has_been_visited = True
-                    self._board.Slots[int(step_r.row)][int(step_r.col)].BeenFirstCoveredBy = self._agentR.Name
+                    self._board.Slots[int(step_r.row)][int(step_r.col)].covered_by = self._agentR.Name
 
                 # then perform step for O
-                stepO = steps_o[i]
-                if not self._board.Slots[int(stepO.row)][int(stepO.col)].has_been_visited:
-                    self._board.Slots[int(stepO.row)][int(stepO.col)].has_been_visited = True
-                    self._board.Slots[int(stepO.row)][int(stepO.col)].BeenFirstCoveredBy = self._agentO.Name
+                step_o = steps_o[i]
+                if not self._board.Slots[int(step_o.row)][int(step_o.col)].has_been_visited:
+                    self._board.Slots[int(step_o.row)][int(step_o.col)].has_been_visited = True
+                    self._board.Slots[int(step_o.row)][int(step_o.col)].covered_by = self._agentO.Name
         else:
             print "what?!"
 
@@ -126,7 +127,7 @@ class Game:
 
         for i in xrange(0, self._board.Rows):
             for j in xrange(0, self._board.Cols):
-                if self._board.Slots[i][j].BeenFirstCoveredBy == self._agentR.Name:
+                if self._board.Slots[i][j].covered_by == self._agentR.Name:
                     cond_count += 1
 
         return float(cond_count)
@@ -139,10 +140,14 @@ class Game:
 
         for i in xrange(0, size_x):
             for j in xrange(0, size_y):
-                if self._board.Slots[i][j].BeenFirstCoveredBy == self._agentO.Name:
+                if self._board.Slots[i][j].covered_by == self._agentO.Name:
                     cond_count += 1
 
         return float(cond_count)
+
+    @property
+    def board(self):
+        return self._board
 
 
 def run_agent_over_board_interception_strategy(steps_o, i_r_x, i_r_y, interception_point):
@@ -162,7 +167,8 @@ def run_agent_over_board_interception_strategy(steps_o, i_r_x, i_r_y, intercepti
         y_sign = -1
 
     while True:
-        if counter >= len(steps_o)-1: break
+        if counter >= len(steps_o)-1:
+            break
 
         # first, go to interception point
         if counter < distance2_interception_point:
@@ -183,15 +189,15 @@ def run_agent_over_board_interception_strategy(steps_o, i_r_x, i_r_y, intercepti
     return steps
 
 
-def GetInterceptionPoint(steps_o, i_r_x, i_r_y):
+def get_interception_point(steps_o, i_r_x, i_r_y):
     ip_x = -1
     ip_y = -1
 
-    stepsCounter = 0
+    steps_counter = 0
     for step in steps_o:
-        stepsCounter += 1
-        distanceFromRInitPos = fabs(step[0] - i_r_x) + fabs(step[1] - i_r_y) + 1
-        if fabs(stepsCounter - distanceFromRInitPos) <= 1:
+        steps_counter += 1
+        distance_from_i_r = fabs(step[0] - i_r_x) + fabs(step[1] - i_r_y) + 1
+        if fabs(steps_counter - distance_from_i_r) <= 1:
             ip_x, ip_y = step
             break
 
@@ -200,10 +206,10 @@ def GetInterceptionPoint(steps_o, i_r_x, i_r_y):
     return (ip_x, ip_y), fabs(ip_x - i_r_x) + fabs(ip_y - i_r_y)
 
 
-def GetVerticalCoverageSteps(agent, boardSizeX, boardSizeY):
-    nextSlot = (agent.InitPosX, agent.InitPosY)
+def get_vertical_coverage_steps(agent, board_size_x, board_size_y):
+    next_slot = (agent.InitPosX, agent.InitPosY)
 
-    flag = (agent.InitPosY == boardSizeY - 1 and not (agent.InitPosX == 0))
+    flag = (agent.InitPosY == board_size_y - 1 and not (agent.InitPosX == 0))
 
     steps = []
     counter = 0
@@ -215,113 +221,116 @@ def GetVerticalCoverageSteps(agent, boardSizeX, boardSizeY):
         if counter > 1000000000000:
             break
 
-        steps.append(nextSlot)
+        steps.append(next_slot)
         # in the middle of moving from bottom row to top row
         if flag:
-            nextSlot = (nextSlot[0] - 1, nextSlot[1])
-            if nextSlot[0] == 0:
+            next_slot = (next_slot[0] - 1, next_slot[1])
+            if next_slot[0] == 0:
                 flag = False
-            if IsNextSlotTheInitialPos(nextSlot, (agent.InitPosX, agent.InitPosY)):
+            if next_slot == (agent.InitPosX, agent.InitPosY):
                 break
             continue
         # check if in last position, and start moving from last row to top row
-        elif nextSlot[0] == boardSizeX - 1 and nextSlot[1] == boardSizeY - 1 - 1:
+        elif next_slot[0] == board_size_x - 1 and next_slot[1] == board_size_y - 1 - 1:
             flag = True
-            nextSlot = (nextSlot[0], nextSlot[1] + 1)
-            if IsNextSlotTheInitialPos(nextSlot, (agent.InitPosX, agent.InitPosY)):
+            next_slot = (next_slot[0], next_slot[1] + 1)
+            if next_slot == (agent.InitPosX, agent.InitPosY):
                 break
             continue
         # update next slot
-        elif nextSlot[0] % 2 != 0:
-            if nextSlot[1] == boardSizeY - 1 - 1:
-                nextSlot = (nextSlot[0] + 1, nextSlot[1])
+        elif next_slot[0] % 2 != 0:
+            if next_slot[1] == board_size_y - 1 - 1:
+                next_slot = (next_slot[0] + 1, next_slot[1])
             else:
-                nextSlot = (nextSlot[0], nextSlot[1] + 1)
+                next_slot = (next_slot[0], next_slot[1] + 1)
         else:
-            if nextSlot[1] == 0:
-                nextSlot = (nextSlot[0] + 1, nextSlot[1])
+            if next_slot[1] == 0:
+                next_slot = (next_slot[0] + 1, next_slot[1])
             else:
-                nextSlot = (nextSlot[0], nextSlot[1] - 1)
+                next_slot = (next_slot[0], next_slot[1] - 1)
 
-        if IsNextSlotTheInitialPos(nextSlot, (agent.InitPosX, agent.InitPosY)):
+        if next_slot == (agent.InitPosX, agent.InitPosY):
             break
 
     return steps
 
 
-def GetQuartersCoverageSteps(agent, boardSizeX, boardSizeY):
+def get_quarters_coverage_steps(agent, board_size_x, board_size_y):
     # This coverage strategy covers first the top left, then top right, then bottom left, then bottom right quarters of
     # the area.
     # While building this function, we assumed 100X100 dimensions
 
     next_slot = Slot(agent.InitPosX, agent.InitPosY)
-    #flag = (agent.InitPosY == boardSizeY - 1 and not (agent.InitPosX == 0))
+    # flag = (agent.InitPosY == boardSizeY - 1 and not (agent.InitPosX == 0))
 
     steps = []
     counter = 0
 
-    #next_slot = Slot(10,6)
+    # next_slot = Slot(10,6)
     while True:
-        counter+=1
+        counter += 1
 
         if counter > 100000:
             print "Something is wrong, counter is too big!"
             print steps
             break
 
-
-        if counter > 1 and IsNextSlotTheInitialPos((next_slot.row, next_slot.col), (agent.InitPosX, agent.InitPosY)):
+        if counter > 1 and (next_slot.row, next_slot.col) == (agent.InitPosX, agent.InitPosY):
             break
 
         steps.append((next_slot.row, next_slot.col))
 
         # TL Quarter
-        if 0 <= next_slot.row < boardSizeX/2 and 0 <= next_slot.col < boardSizeY/2:
-            if (next_slot.row, next_slot.col) == (boardSizeX/2-1,boardSizeY/2-1):
+        if 0 <= next_slot.row < board_size_x/2 and 0 <= next_slot.col < board_size_y/2:
+            if (next_slot.row, next_slot.col) == (board_size_x / 2 - 1, board_size_y / 2 - 1):
                 next_slot.row, next_slot.col = next_slot.go_east()
                 continue
             if next_slot.col == 0:
                 next_slot.row, next_slot.col = next_slot.go_north() if next_slot.row > 0 else next_slot.go_east()
                 continue
-            if next_slot.row % 2 == 0 and next_slot.row < boardSizeX/2-2: # An even line, not the last one
-                next_slot.row, next_slot.col = next_slot.go_east() if not next_slot.col == boardSizeY / 2 - 1 else next_slot.go_south()
+            if next_slot.row % 2 == 0 and next_slot.row < board_size_x/2-2:  # An even line, not the last one
+                next_slot.row, next_slot.col = next_slot.go_east() if not next_slot.col == board_size_y / 2 - 1 else \
+                    next_slot.go_south()
                 continue
-            elif next_slot.row % 2 != 0 and not next_slot.row == boardSizeX/2-1: # An odd line, not before last
+            elif next_slot.row % 2 != 0 and not next_slot.row == board_size_x / 2 - 1:  # An odd line, not before last
                 next_slot.row, next_slot.col = next_slot.go_west() if not next_slot.col == 1 else next_slot.go_south()
                 continue
-            elif next_slot.row % 2 == 0 and next_slot.row == boardSizeX/2-2: # An even line, the last one
+            elif next_slot.row % 2 == 0 and next_slot.row == board_size_x/2-2:  # An even line, the last one
                 next_slot.row, next_slot.col = next_slot.go_south() if next_slot.col % 2 != 0 else next_slot.go_east()
-            elif next_slot.row % 2 != 0 and next_slot.row == boardSizeX/2-1:  # An odd line, last line
+            elif next_slot.row % 2 != 0 and next_slot.row == board_size_x/2-1:  # An odd line, last line
                 next_slot.row, next_slot.col = next_slot.go_east() if next_slot.col % 2 != 0 else next_slot.go_north()
             else:
                 print "TL: Error occurred! Should not reach here!"
             continue
 
         # TR Quarter
-        elif 0 <= next_slot.row < boardSizeX/2 and boardSizeY/2 <= next_slot.col < boardSizeY:
-            if (next_slot.row,next_slot.col) == (boardSizeX/2-1,boardSizeY-1):
-                next_slot.row,next_slot.col = next_slot.go_south()
+        elif 0 <= next_slot.row < board_size_x/2 and board_size_y/2 <= next_slot.col < board_size_y:
+            if (next_slot.row, next_slot.col) == (board_size_x / 2 - 1, board_size_y - 1):
+                next_slot.row, next_slot.col = next_slot.go_south()
                 continue
             elif next_slot.col % 2 == 0:
                 next_slot.row, next_slot.col = next_slot.go_north() if next_slot.row > 0 else next_slot.go_east()
                 continue
             elif next_slot.col % 2 != 0:
-                next_slot.row, next_slot.col = next_slot.go_south() if next_slot.row < boardSizeX/2-1 else next_slot.go_east()
+                next_slot.row, next_slot.col = next_slot.go_south() if next_slot.row < board_size_x / 2 - 1 else \
+                    next_slot.go_east()
                 continue
             else:
                 print "TR: Error occurred! Should not reach here!"
             continue
 
         # BL Quarter
-        elif boardSizeX/2 <= next_slot.row < boardSizeX and 0 <= next_slot.col < boardSizeY/2:
-            if (next_slot.row, next_slot.col) == (boardSizeX/2, 0): # last cell of quarter
-                next_slot.row, next_slot.col= next_slot.go_north()
+        elif board_size_x/2 <= next_slot.row < board_size_x and 0 <= next_slot.col < board_size_y/2:
+            if (next_slot.row, next_slot.col) == (board_size_x / 2, 0):  # last cell of quarter
+                next_slot.row, next_slot.col = next_slot.go_north()
                 continue
-            elif next_slot.col % 2 == 0: # an even column
-                next_slot.row, next_slot.col = next_slot.go_north() if next_slot.row > boardSizeX / 2 else next_slot.go_west()
+            elif next_slot.col % 2 == 0:  # an even column
+                next_slot.row, next_slot.col = next_slot.go_north() if next_slot.row > board_size_x / 2 else \
+                    next_slot.go_west()
                 continue
             elif next_slot.col % 2 != 0:  # An odd line
-                next_slot.row, next_slot.col = next_slot.go_south() if next_slot.row < boardSizeX - 1 else next_slot.go_west()
+                next_slot.row, next_slot.col = next_slot.go_south() if next_slot.row < board_size_x - 1 else \
+                    next_slot.go_west()
                 continue
             else:
                 print "BL: Error occurred! Should not reach here!"
@@ -329,22 +338,25 @@ def GetQuartersCoverageSteps(agent, boardSizeX, boardSizeY):
 
         # BR Quarter
         else:
-            if (next_slot.row, next_slot.col) == (boardSizeX/2, boardSizeY/2):  # last cell of quarter
+            if (next_slot.row, next_slot.col) == (board_size_x / 2, board_size_y / 2):  # last cell of quarter
                 next_slot.row, next_slot.col = next_slot.go_west()
                 continue
-            elif next_slot.col == boardSizeY-1:
-                next_slot.row, next_slot.col = next_slot.go_south() if not next_slot.row == boardSizeX-1 else next_slot.go_west()
+            elif next_slot.col == board_size_y-1:
+                next_slot.row, next_slot.col = next_slot.go_south() if not next_slot.row == board_size_x - 1 else \
+                    next_slot.go_west()
                 continue
-            elif next_slot.row % 2 != 0 and not next_slot.row == boardSizeX/2+1: # and odd line, not before last
-                next_slot.row, next_slot.col = next_slot.go_west() if next_slot.col > boardSizeY/2 else next_slot.go_north()
+            elif next_slot.row % 2 != 0 and not next_slot.row == board_size_x / 2 + 1:  # and odd line, not before last
+                next_slot.row, next_slot.col = next_slot.go_west() if next_slot.col > board_size_y / 2 else \
+                    next_slot.go_north()
                 continue
-            elif next_slot.row % 2 != 0 and next_slot.row == boardSizeX/2+1: # and odd line, DO before last
+            elif next_slot.row % 2 != 0 and next_slot.row == board_size_x/2+1:  # and odd line, DO before last
                 next_slot.row, next_slot.col = next_slot.go_north() if next_slot.col % 2 == 0 else next_slot.go_west()
                 continue
-            elif next_slot.row % 2 == 0 and not next_slot.row == boardSizeX/2:  # an even line, not last one
-                next_slot.row, next_slot.col = next_slot.go_east() if next_slot.col < boardSizeY - 2 else next_slot.go_north()
+            elif next_slot.row % 2 == 0 and not next_slot.row == board_size_x / 2:  # an even line, not last one
+                next_slot.row, next_slot.col = next_slot.go_east() if next_slot.col < board_size_y - 2 else \
+                    next_slot.go_north()
                 continue
-            elif next_slot.row % 2 == 0 and next_slot.row == boardSizeX/2:  # an even line, INDEED last one
+            elif next_slot.row % 2 == 0 and next_slot.row == board_size_x/2:  # an even line, INDEED last one
                 next_slot.row, next_slot.col = next_slot.go_west() if next_slot.col % 2 == 0 else next_slot.go_south()
                 continue
             else:
@@ -354,9 +366,9 @@ def GetQuartersCoverageSteps(agent, boardSizeX, boardSizeY):
     return steps
 
 
-def GetHorizontalCoverageSteps(agent, boardSizeX, boardSizeY):
-    nextSlot = (agent.InitPosX, agent.InitPosY)
-    flag = (agent.InitPosX == boardSizeX - 1)
+def get_horizontal_coverage_steps(agent, board_size_x, board_size_y):
+    next_slot = (agent.InitPosX, agent.InitPosY)
+    flag = (agent.InitPosX == board_size_x - 1)
 
     steps = []
     counter = 0
@@ -365,70 +377,64 @@ def GetHorizontalCoverageSteps(agent, boardSizeX, boardSizeY):
 
     while True:
         counter += 1
-        if counter > boardSizeX * boardSizeY:
+        if counter > board_size_x * board_size_y:
             break
 
-        steps.append(nextSlot)
+        steps.append(next_slot)
         # in the middle of moving from bottom rpw to top row
         if flag:
-            if nextSlot[1] == boardSizeY - 1:
+            if next_slot[1] == board_size_y - 1:
                 flag = False
-                nextSlot = (nextSlot[0] - 1, nextSlot[1])
+                next_slot = (next_slot[0] - 1, next_slot[1])
             else:
-                nextSlot = (nextSlot[0], nextSlot[1] + 1)
-            if IsNextSlotTheInitialPos(nextSlot, (agent.InitPosX, agent.InitPosY)):
+                next_slot = (next_slot[0], next_slot[1] + 1)
+            if next_slot == (agent.InitPosX, agent.InitPosY):
                 break
             continue
         # check if in last position, and start moving from last row to top row
-        elif nextSlot[0] == boardSizeX - 1 - 1 and nextSlot[1] == 0:
+        elif next_slot[0] == board_size_x - 1 - 1 and next_slot[1] == 0:
             flag = True
-            nextSlot = (nextSlot[0] + 1, nextSlot[1])
+            next_slot = (next_slot[0] + 1, next_slot[1])
 
-            if IsNextSlotTheInitialPos(nextSlot, (agent.InitPosX, agent.InitPosY)):
+            if next_slot == (agent.InitPosX, agent.InitPosY):
                 break
             continue
         # update next slot
-        elif nextSlot[1] % 2 != 0:
-            if nextSlot[0] == 0:
-                nextSlot = (nextSlot[0], nextSlot[1] - 1)
+        elif next_slot[1] % 2 != 0:
+            if next_slot[0] == 0:
+                next_slot = (next_slot[0], next_slot[1] - 1)
             else:
-                nextSlot = (nextSlot[0] - 1, nextSlot[1])
+                next_slot = (next_slot[0] - 1, next_slot[1])
         else:
-            if nextSlot[0] == boardSizeY - 1 - 1:
-                nextSlot = (nextSlot[0], nextSlot[1] - 1)
+            if next_slot[0] == board_size_y - 1 - 1:
+                next_slot = (next_slot[0], next_slot[1] - 1)
             else:
-                nextSlot = (nextSlot[0] + 1, nextSlot[1])
-                if nextSlot[0] > boardSizeX - 1:
+                next_slot = (next_slot[0] + 1, next_slot[1])
+                if next_slot[0] > board_size_x - 1:
                     print "+1"
 
-        if IsNextSlotTheInitialPos(nextSlot, (agent.InitPosX, agent.InitPosY)):
+        if next_slot == Slot(agent.InitPosX, agent.InitPosY):
             break
 
     return steps
 
 
-def RunAgentOverBoardFullKnowledgeInterceptionStrategy(agentR, agentO, boardSizeX, boardSizeY):
-    stepsO = []
+def run_agent_over_board_full_knowledge_interception_strategy(agent_r, agent_o, board_size_x, board_size_y):
+    steps_o = []
 
-    if agentO.Strategy == StrategyEnum.VerticalCoverageCircular:
-        stepsO = GetVerticalCoverageSteps(agentO, boardSizeX, boardSizeY)
-    elif agentO.Strategy == StrategyEnum.HorizontalCoverageCircular:
-        stepsO = GetHorizontalCoverageSteps(agentO, boardSizeX, boardSizeY)
-    elif agentO.Strategy == StrategyEnum.QuartersCoverageCircular:
-        stepsO = GetQuartersCoverageSteps(agentO, boardSizeX, boardSizeY)
+    if agent_o.Strategy == StrategyEnum.VerticalCoverageCircular:
+        steps_o = get_vertical_coverage_steps(agent_o, board_size_x, board_size_y)
+    elif agent_o.Strategy == StrategyEnum.HorizontalCoverageCircular:
+        steps_o = get_horizontal_coverage_steps(agent_o, board_size_x, board_size_y)
+    elif agent_o.Strategy == StrategyEnum.QuartersCoverageCircular:
+        steps_o = get_quarters_coverage_steps(agent_o, board_size_x, board_size_y)
 
     # Find interception point
-    (interceptionPoint_R_O, distance) = GetInterceptionPoint(stepsO, agentR.InitPosX, agentR.InitPosY)
+    (interceptionPoint_R_O, distance) = get_interception_point(steps_o, agent_r.InitPosX, agent_r.InitPosY)
 
-    stepsR = run_agent_over_board_interception_strategy(stepsO, agentR.InitPosX, agentR.InitPosY, interceptionPoint_R_O)
+    steps_r = run_agent_over_board_interception_strategy(steps_o, agent_r.InitPosX, agent_r.InitPosY,
+                                                         interceptionPoint_R_O)
 
     # play steps for both players and for each step check who covered it first
 
-    return stepsR
-
-
-def IsNextSlotTheInitialPos(nextSlot, initialPos):
-    return nextSlot[0] == initialPos[0] and nextSlot[1] == initialPos[1]
-
-
-
+    return steps_r

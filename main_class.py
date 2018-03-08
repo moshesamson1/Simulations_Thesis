@@ -10,6 +10,12 @@ import matplotlib.pyplot as plt
 import time
 import pylab
 import os
+import smtplib
+from os.path import basename
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.utils import COMMASPACE, formatdate
 
 So_seed = 123456789
 
@@ -34,7 +40,7 @@ def get_average_gain_no_information_job(board_size_x, board_size_y, seed_code):
     gain = game.get_r_gain()
 
     if not (gain + game.get_o_gain() == board_size_x * board_size_y):
-        print game._board
+        print game.board
         print "Error: gains are wrong!"
     return gain
 
@@ -156,7 +162,8 @@ def compute_expected_profits_for__sr_set__ir_random__so__io(iterations, board_si
     print mean_gains
 
     rnd.seed(max(enumerate(mean_gains))[0])
-    SpanningTreeCoverage.get_random_coverage_strategy(board_size, Slot(agent_r.InitPosX, agent_r.InitPosY), True)
+
+    SpanningTreeCoverage.get_random_coverage_strategy(board_size, Slot(int(board_size / 2), int(board_size / 2)), True)
     return max(mean_gains)
 
 
@@ -285,11 +292,11 @@ def analyze_results(seeds, values, figure_label=""):
     # plt.plot(values, norm_turns_values, 'ro')
 
     hm_values = [get_heat_map_intersection_value(v, Slot(16, 16), Slot(31, 31)) for v in seeds]
-    norm_hm_values = [float(i) / max(hm_values) for i in hm_values]
+    # norm_hm_values = [float(i) / max(hm_values) for i in hm_values]
     ax.plot(values, hm_values, 'bo')
 
     # compute and show regression line
-    (m, b) = pylab.polyfit(values, hm_values, 1)
+    m, b = pylab.polyfit(values, hm_values, 1)
     yp = pylab.polyval([m, b], values)
     ax.plot(values, yp, 'r')
     plt.grid('on')
@@ -303,13 +310,6 @@ def analyze_results(seeds, values, figure_label=""):
 
 
 def send_files_via_email(text, title):
-    import smtplib
-    from os.path import basename
-    from email.mime.application import MIMEApplication
-    from email.mime.multipart import MIMEMultipart
-    from email.mime.text import MIMEText
-    from email.utils import COMMASPACE, formatdate
-
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.starttls()
     server.login("moshe.samson@mail.huji.ac.il", "moshe_samson770")

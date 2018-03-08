@@ -7,11 +7,11 @@ import Entities
 
 def print_graph(edges, i_o, figure_label=""):
     plt.figure()
-    G = nx.DiGraph()
-    G.add_edges_from(edges)
-    positions ={}
+    g = nx.DiGraph()
+    g.add_edges_from(edges)
+    positions = {}
     color_map = []
-    for n in G.nodes():
+    for n in g.nodes():
         positions[n] = (n.row, n.col)
         if n == edges[0][0]:
             color_map.append('green')
@@ -22,7 +22,7 @@ def print_graph(edges, i_o, figure_label=""):
         # color_map.append('green' if n == edges[0][0] else 'red')
 
     f = plt.figure()
-    nx.draw(G=G, pos=positions, node_size=20, font_size=8, node_color=color_map, ax=f.add_subplot(111))
+    nx.draw(G=g, pos=positions, node_size=20, font_size=8, node_color=color_map, ax=f.add_subplot(111))
     f.savefig(figure_label + "_max_path.png", bbox_inches='tight')
     plt.close('all')
 
@@ -32,26 +32,27 @@ def print_graph(edges, i_o, figure_label=""):
     plt.show()
 
 
-def create_graph(edgelist):
+def create_graph(edge_list):
     graph = {}
-    for e1, e2 in edgelist:
+    for e1, e2 in edge_list:
         graph.setdefault(e1, []).append(e2)
         graph.setdefault(e2, []).append(e1)
     return graph
 
 
-def getShallowGraph(origianl_edges):
+def get_shallow_graph(original_edges):
     shallow_graph = {}
-    for e1,e2 in origianl_edges:
+    for e1, e2 in original_edges:
         shallow_e1 = Entities.Slot(floor(e1.row / 2.0), floor(e1.col / 2.0))
         shallow_e2 = Entities.Slot(floor(e2.row / 2.0), floor(e2.col / 2.0))
 
-        if (shallow_e1.row, shallow_e1.col) == (shallow_e2.row, shallow_e2.col): continue
+        if (shallow_e1.row, shallow_e1.col) == (shallow_e2.row, shallow_e2.col):
+            continue
 
-        if shallow_e1 not in shallow_graph.keys() or not shallow_e2 in shallow_graph[shallow_e1]:
+        if shallow_e1 not in shallow_graph.keys() or shallow_e2 not in shallow_graph[shallow_e1]:
             shallow_graph.setdefault(shallow_e1, []).append(shallow_e2)
 
-        if shallow_e2 not in shallow_graph.keys() or not shallow_e1 in shallow_graph[shallow_e2]:
+        if shallow_e2 not in shallow_graph.keys() or shallow_e1 not in shallow_graph[shallow_e2]:
             shallow_graph.setdefault(shallow_e2, []).append(shallow_e1)
 
     return shallow_graph
@@ -66,7 +67,6 @@ def mst(start, graph):
         # randomize
         shuffle(q)
 
-
         v1, v2 = q.pop()
         if v2 in closed:
             continue
@@ -80,30 +80,30 @@ def mst(start, graph):
     return edges
 
 
-def CreateCoveringPath(mst_edges_shallow_graph, initial_slot):
+def create_covering_path(mst_edges_shallow_graph, initial_slot):
     covering_path = []
     origin_slot = initial_slot
     slot = origin_slot
     counter = 0
     while True:
-        counter+=1
+        counter += 1
         if counter > 100000:
-            print "ERROR!!!"
+            print "ERROR! Probably hit infinite loop while creating the covering path"
             return
-
-        # remove after finishing debugging
-        #if slot in covering_path:
-        #    print "slot already in! Check parameters"
 
         covering_path.append(slot)
         shallow_slot = Entities.Slot(floor(slot.row / 2.0), floor(slot.col / 2.0))
         # find to where to go next, depend on the mst edges.
         # Check how much and which corners are in the mst group, then update slot accordingly
 
-        has_downward_edge = (shallow_slot,shallow_slot.go_south()) in mst_edges_shallow_graph or (shallow_slot.go_south(), shallow_slot) in mst_edges_shallow_graph
-        has_rightward_edge =  (shallow_slot,shallow_slot.go_east()) in mst_edges_shallow_graph or (shallow_slot.go_east(), shallow_slot) in mst_edges_shallow_graph
-        has_leftward_edge = (shallow_slot,shallow_slot.go_west()) in mst_edges_shallow_graph or (shallow_slot.go_west(), shallow_slot) in mst_edges_shallow_graph
-        has_upward_edge = (shallow_slot,shallow_slot.go_north()) in mst_edges_shallow_graph or (shallow_slot.go_north(), shallow_slot) in mst_edges_shallow_graph
+        has_downward_edge = (shallow_slot, shallow_slot.go_south()) in mst_edges_shallow_graph or \
+                            (shallow_slot.go_south(), shallow_slot) in mst_edges_shallow_graph
+        has_rightward_edge = (shallow_slot, shallow_slot.go_east()) in mst_edges_shallow_graph or \
+                             (shallow_slot.go_east(), shallow_slot) in mst_edges_shallow_graph
+        has_leftward_edge = (shallow_slot, shallow_slot.go_west()) in mst_edges_shallow_graph or \
+                            (shallow_slot.go_west(), shallow_slot) in mst_edges_shallow_graph
+        has_upward_edge = (shallow_slot, shallow_slot.go_north()) in mst_edges_shallow_graph or \
+                          (shallow_slot.go_north(), shallow_slot) in mst_edges_shallow_graph
 
         bl_corner_in_mst = False
         br_corner_in_mst = False
@@ -215,7 +215,7 @@ def CreateCoveringPath(mst_edges_shallow_graph, initial_slot):
             elif slot.go_west() == last_slot:
                 slot = slot.go_north()
         else:
-            print "error has occured!"
+            print "error has occurred!"
 
         if slot == origin_slot:
             break
@@ -236,10 +236,10 @@ def get_edges_for_full_graph(width, height):
 
 def get_random_coverage_strategy(size, i_r, i_o=None, print_mst=False, figure_label=""):
     edges = get_edges_for_full_graph(size, size)
-    shallow_graph = getShallowGraph(edges)
+    shallow_graph = get_shallow_graph(edges)
     shallow_init_pos = Entities.Slot(floor(i_r.row / 2.0), floor(i_r.col / 2.0))
     mst_edges_shallow_graph = mst(shallow_init_pos, shallow_graph)
-    covering_path = CreateCoveringPath(mst_edges_shallow_graph, i_r)
+    covering_path = create_covering_path(mst_edges_shallow_graph, i_r)
     if print_mst:
         covering_path_edges = []
         for i in xrange(0, len(covering_path)-1):
@@ -256,4 +256,4 @@ def display_path(covering_path):
 
 
 if __name__ == '__main__':
-    get_random_coverage_strategy(32,Entities.Slot(16,16),True)
+    get_random_coverage_strategy(32, Entities.Slot(16, 16), True)
