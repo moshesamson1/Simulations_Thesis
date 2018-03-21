@@ -49,6 +49,9 @@ class Slot:
     def go_south(self):
         return Slot(self.row + 1, self.col)
 
+    def to_tuple(self):
+        return (self.row, self.col)
+
     def __str__(self):
         return "{0},{1},{2}".format(str(int(self.row)), str(int(self.col)), str(self.covered_by))
 
@@ -61,13 +64,13 @@ class StrategyEnum:
         pass
 
     VerticalCoverageCircular, HorizontalCoverageCircular, FullKnowledgeInterceptionCircular, QuartersCoverageCircular,\
-        RandomSTC = range(5)
+        RandomSTC, VerticalCoverageNonCircular = range(6)
 
 
 class Agent:
     def __init__(self, name, strategy, x, y, board=None, agent_o=None):
-        # type: (str, StrategyEnum, int, int, Board, Agent) -> None
-        assert isinstance(strategy, StrategyEnum)
+        # type: (str, int, int, int, Board, Agent) -> None
+        assert isinstance(strategy, int)
 
         self.Name = name
         self.Strategy = strategy
@@ -89,6 +92,9 @@ class Agent:
             self.steps = SpanningTreeCoverage.get_random_coverage_strategy(len(self.gameBoard.Slots),
                                                                            Slot(self.InitPosX, self.InitPosY),
                                                                            print_mst=False)
+        elif  self.Strategy == StrategyEnum.VerticalCoverageNonCircular:
+            self.steps = get_non_circular_vertical_coverage(self, len(self.gameBoard.Slots),
+                                                            len(self.gameBoard.Slots[0]))
 
 
 class Game:
@@ -214,8 +220,6 @@ def get_vertical_coverage_steps(agent, board_size_x, board_size_y):
     steps = []
     counter = 0
 
-    # print "init pos {},{}: ".format(agent.InitPosX, agent.InitPosY)
-
     while True:
         counter += 1
         if counter > 1000000000000:
@@ -253,6 +257,82 @@ def get_vertical_coverage_steps(agent, board_size_x, board_size_y):
             break
 
     return steps
+
+
+def get_non_circular_vertical_coverage(agent, board_size_x, board_size_y):
+    """
+    Returns a non-circular vertical coverage, starting from agent's initial position to top-right position, then cover
+    all cells from top-right to bottom-left, without repeating cells (there are some assumption regarding the initial
+    position
+    :param agent: the given agent
+    :param board_size_x: board's width
+    :param board_size_y: board's height
+    :return: a set of steps covering the whole board
+    """
+    steps = []
+    next_slot = Slot(agent.InitPosX, agent.InitPosY)
+    turning_slot = Slot(agent.InitPosX, agent.InitPosY)
+    reaching_to_farthest_corner = True
+    up_or_down = 'd'
+
+    # assert call
+    assert agent.InitPosX % 2 == 0
+    while True:
+        steps.append(next_slot)
+        if len(steps) >= board_size_y*board_size_x:
+            break
+
+        # Check if we agent reached the farthest corner of the board
+        if next_slot == Slot(board_size_x - 1, board_size_y - 1):
+            reaching_to_farthest_corner = False
+
+        if reaching_to_farthest_corner:
+            if next_slot.row < board_size_y - 1:
+                next_slot = next_slot.go_south()
+                continue
+            elif next_slot.col < board_size_x - 1:
+                next_slot = next_slot.go_east()
+                continue
+        else:
+            if next_slot.col > agent.InitPosY:
+                if next_slot.col % 2 != 0:
+                    next_slot = next_slot.go_north() if next_slot.row > 0 else next_slot.go_west()
+                else:
+                    next_slot = next_slot.go_south() if next_slot.row < board_size_y-2 else next_slot.go_west()
+                continue
+            else:
+                if up_or_down == 'd':
+                    if next_slot.go_south() != turning_slot:
+                        if next_slot.row < board_size_y-1:
+                            next_slot = next_slot.go_south()
+                        else:
+                            next_slot = next_slot.go_west()
+                            up_or_down ='u'
+                        continue
+                    else:
+                        turning_slot = turning_slot.go_west().go_west().go_north().go_north()
+                        steps.append(next_slot.go_west())
+                        steps.append(next_slot.go_west().go_south())
+                        next_slot = next_slot.go_west().go_south().go_south()
+                        continue
+                else:
+                    if next_slot != turning_slot:
+                        if next_slot.row > 0:
+                            next_slot = next_slot.go_north()
+                        else:
+                            next_slot = next_slot.go_west()
+                            up_or_down = 'd'
+                        continue
+                    else:
+                        steps.append(next_slot.go_east())
+                        steps.append(next_slot.go_east().go_north())
+                        next_slot = next_slot.go_east().go_north().go_north()
+                        continue
+
+
+
+    return steps[:board_size_y*board_size_x]
+
 
 
 def get_quarters_coverage_steps(agent, board_size_x, board_size_y):

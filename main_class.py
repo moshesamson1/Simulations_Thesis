@@ -167,7 +167,8 @@ def compute_expected_profits_for__sr_set__ir_random__so__io(iterations, board_si
     return max(mean_gains)
 
 
-def compute_expected_profits_given_o(board_size, seeds_count_o, given_io, given_ir, figure_label="", seeds_count_r=1):
+def compute_expected_profits_given_o(board_size, seeds_count_o, given_io, given_ir, figure_label="", seeds_count_r=1,
+                                     r_strategy = StrategyEnum.RandomSTC):
     """
     This function checks if there is a better-than-random strategy for R given only O's position and not its strategy.
     :param figure_label: optional figure's label
@@ -189,7 +190,7 @@ def compute_expected_profits_given_o(board_size, seeds_count_o, given_io, given_
 
         # Set seed for S_r
         rnd.seed(Sr_seed_code)
-        agent_r = Agent("R", StrategyEnum.RandomSTC, given_ir[0], given_ir[1], board=b)
+        agent_r = Agent("R", r_strategy, given_ir[0], given_ir[1], board=b)
 
         # Average over all possible strategies
         sum_gains = 0
@@ -339,7 +340,8 @@ def compute_and_analyze_results_given_o_position(seeds_amount, i_o, _board_size,
     t0 = time.time()
     label = "size{0}, Io={1}, Ir={2}, seeds: {3}".format(str(_board_size), str(i_o), str(i_r), str(seeds_amount))
     seeds, values, max_val = compute_expected_profits_given_o(board_size=_board_size, seeds_count_o=seeds_amount,
-                                                              given_io=i_o, given_ir=i_r, figure_label=label)
+                                                              given_io=i_o, given_ir=i_r, figure_label=label,
+                                                              r_strategy=StrategyEnum.VerticalCoverageNonCircular)
     print seeds
     print values
     analyze_results(seeds, values, figure_label=label)
@@ -354,8 +356,14 @@ def compute_and_analyze_results_given_o_position(seeds_amount, i_o, _board_size,
 
 def main():
     # compute_and_analyze_results_given_o_position(seeds_amount = 100, i_o = (16, 16), _board_size = 32, i_r = (31,31))
-    compute_and_analyze_results_given_o_position(seeds_amount=1000, i_o=(0, 0), _board_size=32, i_r=(31, 31),
+    compute_and_analyze_results_given_o_position(seeds_amount=1000, i_o=(0, 0), _board_size=32, i_r=(2, 2),
                                                  send_email=True)
+    compute_and_analyze_results_given_o_position(seeds_amount=1000, i_o=(0, 0), _board_size=32, i_r=(16, 16),
+                                                 send_email=True)
+    compute_and_analyze_results_given_o_position(seeds_amount=1000, i_o=(0, 0), _board_size=32, i_r=(30, 30),
+                                                 send_email=True)
+
+    # a = Agent(name='a', strategy=StrategyEnum.VerticalCoverageNonCircular, board=Board(rows=64, cols=64),x=4, y=4)
 
 
 if __name__ == "__main__":
