@@ -3,6 +3,7 @@ from random import shuffle
 import matplotlib.pyplot as plt
 from math import floor
 import Entities
+import os
 
 
 def print_graph(edges, i_o, figure_label=""):
@@ -23,7 +24,11 @@ def print_graph(edges, i_o, figure_label=""):
 
     f = plt.figure()
     nx.draw(G=g, pos=positions, node_size=20, font_size=8, node_color=color_map, ax=f.add_subplot(111))
-    f.savefig(figure_label + "_max_path.png", bbox_inches='tight')
+
+    if not os.path.exists(figure_label):
+        os.makedirs(figure_label)
+
+    f.savefig(figure_label + "/max_path.png", bbox_inches='tight')
     plt.close('all')
 
     # plt.axis([-1, 33, -1, 33], 'on')

@@ -16,6 +16,7 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import COMMASPACE, formatdate
+import time
 
 So_seed = 123456789
 
@@ -168,17 +169,18 @@ def compute_expected_profits_for__sr_set__ir_random__so__io(iterations, board_si
 
 
 def compute_expected_profits_given_o(board_size, seeds_count_o, given_io, given_ir, figure_label="", seeds_count_r=1,
-                                     r_strategy = StrategyEnum.RandomSTC):
+                                     r_strategy=StrategyEnum.RandomSTC, r_base_seed=-1):
     """
     This function checks if there is a better-than-random strategy for R given only O's position and not its strategy.
     :param figure_label: optional figure's label
     :param given_ir: given initial position for r
     :param given_io: given initial position for o
+    :param r_base_seed: optional user-given seed for Sr
     :type board_size: int
     :type seeds_count_o: int
     :type seeds_count_r: int
     """
-    s_r_seeds = rnd.sample(xrange(1, 1000000000), seeds_count_r)
+    s_r_seeds = rnd.sample(xrange(1, 1000000000), seeds_count_r) if r_base_seed == -1 else [r_base_seed]
     s_o_seeds = rnd.sample(xrange(1, 1000000000), seeds_count_o)
 
     # save max r_code to print in the end
@@ -211,7 +213,8 @@ def compute_expected_profits_given_o(board_size, seeds_count_o, given_io, given_
                                                       Slot(given_io[0], given_io[1]),
                                                       print_mst=True, figure_label=figure_label)
     for i in xrange(len(s_r_seeds)):
-        print "(seed, value): {0} {1}".format(str(s_r_seeds[i]), str(values[i]))
+        print "(seed, value, distance): {0} {1} {2}".format(str(s_r_seeds[i]), str(values[i]), str(
+            np.fabs(given_ir[0] - given_io[0]) + np.fabs(given_ir[1] - given_io[1])))
 
     return s_r_seeds, values, max_val
 
@@ -283,7 +286,7 @@ def get_heat_map_intersection_value(path_seed, i_o, i_r):
     return hm_value
 
 
-def analyze_results(seeds, values, figure_label=""):
+def analyze_results(seeds, values, i_o, i_r, figure_label=""):
     f, ax = plt.subplots(1)
 
     # turns_values = [get_turns_amount(v) for v in seeds]
@@ -292,21 +295,25 @@ def analyze_results(seeds, values, figure_label=""):
     #     print t
     # plt.plot(values, norm_turns_values, 'ro')
 
-    hm_values = [get_heat_map_intersection_value(v, Slot(16, 16), Slot(31, 31)) for v in seeds]
+    hm_values = [get_heat_map_intersection_value(v, i_o, i_r) for v in seeds]
     # norm_hm_values = [float(i) / max(hm_values) for i in hm_values]
     ax.plot(values, hm_values, 'bo')
 
     # compute and show regression line
-    m, b = pylab.polyfit(values, hm_values, 1)
-    yp = pylab.polyval([m, b], values)
-    ax.plot(values, yp, 'r')
+    if len(hm_values) > 3:
+        m, b = pylab.polyfit(values, hm_values, 1)
+        yp = pylab.polyval([m, b], values)
+        ax.plot(values, yp, 'r')
     plt.grid('on')
 
     # display axis titles
     plt.xlabel('Average FCC')
     plt.ylabel('Heat-Map Value')
 
-    f.savefig(figure_label + '_fcc_hmValues_graph.png', bbox_inches='tight')
+    if not os.path.exists(figure_label):
+        os.makedirs(figure_label)
+
+    f.savefig(figure_label + '/fcc_hmValues_graph.png', bbox_inches='tight')
     plt.close('all')
 
 
@@ -323,7 +330,7 @@ def send_files_via_email(text, title):
 
     msg.attach(MIMEText(text))
 
-    for f in [title+"_max_path.png", title+"_fcc_hmValues_graph.png"]:
+    for f in [title + "_max_path.png", title + "_fcc_hmValues_graph.png"]:
         with open(f, "rb") as fil:
             part = MIMEApplication(
                 fil.read(),
@@ -338,33 +345,36 @@ def send_files_via_email(text, title):
 
 def compute_and_analyze_results_given_o_position(seeds_amount, i_o, _board_size, i_r, send_email):
     t0 = time.time()
-    label = "size{0}, Io={1}, Ir={2}, seeds: {3}".format(str(_board_size), str(i_o), str(i_r), str(seeds_amount))
+    label = "Results/size{0}_Io={1}_Ir={2}_seeds:{3}".format(str(_board_size), str(i_o), str(i_r), str(seeds_amount))
     seeds, values, max_val = compute_expected_profits_given_o(board_size=_board_size, seeds_count_o=seeds_amount,
                                                               given_io=i_o, given_ir=i_r, figure_label=label,
-                                                              r_strategy=StrategyEnum.VerticalCoverageNonCircular)
-    print seeds
-    print values
-    analyze_results(seeds, values, figure_label=label)
+                                                              r_strategy=StrategyEnum.RandomSTC,
+                                                              seeds_count_r=1, r_base_seed=10)
+
+    analyze_results(seeds, values, i_o=Slot(i_o[0], i_o[1]), i_r=Slot(i_r[0], i_r[1]), figure_label=label)
     t1 = time.time()
-    print "elapsed: " + str(t1 - t0)
+    # print "elapsed: " + str(t1 - t0)
 
     if send_email:
         send_files_via_email(text="Execution took " + str(t1 - t0) + " seconds. max_val: " + str(max_val), title=label)
 
-    print "\n=======================================================================================================\n"
+        # print "\n=======================================================================================================\n"
 
 
-def main():
-    # compute_and_analyze_results_given_o_position(seeds_amount = 100, i_o = (16, 16), _board_size = 32, i_r = (31,31))
-    compute_and_analyze_results_given_o_position(seeds_amount=1000, i_o=(0, 0), _board_size=32, i_r=(2, 2),
-                                                 send_email=True)
-    compute_and_analyze_results_given_o_position(seeds_amount=1000, i_o=(0, 0), _board_size=32, i_r=(16, 16),
-                                                 send_email=True)
-    compute_and_analyze_results_given_o_position(seeds_amount=1000, i_o=(0, 0), _board_size=32, i_r=(30, 30),
-                                                 send_email=True)
+if __name__ == '__main__':
+    def main():
 
-    # a = Agent(name='a', strategy=StrategyEnum.VerticalCoverageNonCircular, board=Board(rows=64, cols=64),x=4, y=4)
+        # for every possible i_r on the board, always with the same strategy for R, average FCC results over 1000
+        # different random STC coverage strategies for O, to see if there is a direct relation between initial
+        # positions' distance and resulted averaged FCC
 
+        i_o = (0, 0)
+        for i_r_x in xrange(8):
+            for i_r_y in xrange(8):
+                i_r = (i_r_x, i_r_y)
+                if i_r == i_o: continue
+                compute_and_analyze_results_given_o_position(seeds_amount=1000, i_o=i_o, _board_size=8, i_r=i_r,
+                                                             send_email=False)
 
 if __name__ == "__main__":
     main()
