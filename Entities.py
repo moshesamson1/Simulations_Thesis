@@ -18,11 +18,16 @@ class Board:
             s += '\n'
         return s
 
+    def reset(self):
+        for s in self.Slots:
+            s.has_been_visited = False
+            s.is_occupied = False
+            s.covered_by = "*"
+
 
 class Slot:
     def __init__(self, x, y):
         self.has_been_visited = False
-        self.is_occupied = False
         self.covered_by = "*"
         self.row = x
         self.col = y
@@ -50,7 +55,7 @@ class Slot:
         return Slot(self.row + 1, self.col)
 
     def to_tuple(self):
-        return (self.row, self.col)
+        return self.row, self.col
 
     def __str__(self):
         return "{0},{1},{2}".format(str(int(self.row)), str(int(self.col)), str(self.covered_by))
@@ -64,7 +69,7 @@ class StrategyEnum:
         pass
 
     VerticalCoverageCircular, HorizontalCoverageCircular, FullKnowledgeInterceptionCircular, QuartersCoverageCircular,\
-        RandomSTC, VerticalCoverageNonCircular = range(6)
+        RandomSTC, VerticalCoverageNonCircular, SpiralingOut, SpiralingIn = range(8)
 
 
 class Agent:
@@ -92,9 +97,13 @@ class Agent:
             self.steps = SpanningTreeCoverage.get_random_coverage_strategy(len(self.gameBoard.Slots),
                                                                            Slot(self.InitPosX, self.InitPosY),
                                                                            print_mst=False)
-        elif  self.Strategy == StrategyEnum.VerticalCoverageNonCircular:
+        elif self.Strategy == StrategyEnum.VerticalCoverageNonCircular:
             self.steps = get_non_circular_vertical_coverage(self, len(self.gameBoard.Slots),
                                                             len(self.gameBoard.Slots[0]))
+        elif self.Strategy == StrategyEnum.SpiralingIn:
+            self.steps = get_spiraling_in_steps(self, len(self.gameBoard.Slots))
+        elif self.Strategy == StrategyEnum.SpiralingOut:
+            self.steps = get_spiraling_out_steps(self, len(self.gameBoard.Slots))
 
 
 class Game:
@@ -104,27 +113,28 @@ class Game:
         self._agentR = agent_r
         self._agentO = agent_o
 
-    def run_game(self):
+    def run_game(self, optimality = True):
         steps_r = self._agentR.steps
         steps_o = self._agentO.steps
 
         # print steps_o
+        if optimality:
+            assert len(steps_o) == len(steps_r)
 
-        if len(steps_o) == len(steps_r):
-            for i in range(len(steps_r)):
-                # perform step for R
-                step_r = steps_r[i]
-                if not self._board.Slots[int(step_r.row)][int(step_r.col)].has_been_visited:
-                    self._board.Slots[int(step_r.row)][int(step_r.col)].has_been_visited = True
-                    self._board.Slots[int(step_r.row)][int(step_r.col)].covered_by = self._agentR.Name
+        for i in range(min(len(steps_r), len(steps_o))):
+            # perform step for R
+            step_r = steps_r[i]
+            if not self._board.Slots[int(step_r.row)][int(step_r.col)].has_been_visited:
+                self._board.Slots[int(step_r.row)][int(step_r.col)].has_been_visited = True
+                self._board.Slots[int(step_r.row)][int(step_r.col)].covered_by = self._agentR.Name
 
-                # then perform step for O
-                step_o = steps_o[i]
-                if not self._board.Slots[int(step_o.row)][int(step_o.col)].has_been_visited:
-                    self._board.Slots[int(step_o.row)][int(step_o.col)].has_been_visited = True
-                    self._board.Slots[int(step_o.row)][int(step_o.col)].covered_by = self._agentO.Name
-        else:
-            print "what?!"
+            # then perform step for O
+            step_o = steps_o[i]
+            if not self._board.Slots[int(step_o.row)][int(step_o.col)].has_been_visited:
+                self._board.Slots[int(step_o.row)][int(step_o.col)].has_been_visited = True
+                self._board.Slots[int(step_o.row)][int(step_o.col)].covered_by = self._agentO.Name
+
+
 
     def get_r_gain(self):
         cond_count = 0
@@ -307,7 +317,7 @@ def get_non_circular_vertical_coverage(agent, board_size_x, board_size_y):
                             next_slot = next_slot.go_south()
                         else:
                             next_slot = next_slot.go_west()
-                            up_or_down ='u'
+                            up_or_down = 'u'
                         continue
                     else:
                         turning_slot = turning_slot.go_west().go_west().go_north().go_north()
@@ -329,10 +339,7 @@ def get_non_circular_vertical_coverage(agent, board_size_x, board_size_y):
                         next_slot = next_slot.go_east().go_north().go_north()
                         continue
 
-
-
     return steps[:board_size_y*board_size_x]
-
 
 
 def get_quarters_coverage_steps(agent, board_size_x, board_size_y):
@@ -346,7 +353,6 @@ def get_quarters_coverage_steps(agent, board_size_x, board_size_y):
     steps = []
     counter = 0
 
-    # next_slot = Slot(10,6)
     while True:
         counter += 1
 
@@ -498,6 +504,140 @@ def get_horizontal_coverage_steps(agent, board_size_x, board_size_y):
 
     return steps
 
+def get_spiraling_in_steps(agent, board_size):
+    """
+    This function return the agent steps, when deciding to cover the world, spiraling from outside to inside.
+    Note: this coverage method is not optimal!
+    :param agent: the agent covering the world
+    :param board_size: self explanatory
+    :return: list of steps
+    """
+    steps = []
+
+    next_slot = Slot(agent.InitPosX, agent.InitPosY)
+
+    # start by going toward the closest corner
+    if next_slot.row < board_size / 2:
+        while next_slot.row > 0:
+            steps.append(next_slot)
+            next_slot = next_slot.go_north()
+            continue
+    else:
+        while next_slot.row < board_size - 1:
+            steps.append(next_slot)
+            next_slot = next_slot.go_south()
+            continue
+
+    if next_slot.col < board_size / 2:
+        while next_slot.col > 0:
+            steps.append(next_slot)
+            next_slot = next_slot.go_west()
+            continue
+    else:
+        while next_slot.col < board_size - 1:
+            steps.append(next_slot)
+            next_slot = next_slot.go_east()
+            continue
+    steps.append(next_slot)
+
+    # after reaching the closest-to-start corner, start covering the world, counter clockwise
+    shallow_slots = [[0 for x in range(board_size)] for y in range(board_size)]
+    shallow_slots[next_slot.row][next_slot.col] = 1
+    dist_from_edge = 0
+
+    while dist_from_edge < board_size / 2:
+        if next_slot.row + dist_from_edge < board_size - 1 and next_slot.col == dist_from_edge :
+            direction = 's'
+        elif next_slot.row + dist_from_edge == board_size - 1 and next_slot.col + dist_from_edge < board_size - 1:
+            direction = 'e'
+        elif next_slot.row > dist_from_edge and next_slot.col + dist_from_edge == board_size - 1:
+            direction = 'n'
+        elif next_slot.row == dist_from_edge and next_slot.col + dist_from_edge >= board_size - 1 :
+            direction = 'w'
+
+
+        if direction == 's':
+            new_slot = next_slot.go_south()
+        elif direction == 'e':
+            new_slot = next_slot.go_east()
+        elif direction == 'n':
+            new_slot = next_slot.go_north()
+        elif direction == 'w':
+            new_slot  = next_slot.go_west()
+
+        if shallow_slots[new_slot.row][new_slot.col] == 1:
+            dist_from_edge += 1
+            continue
+        else:
+            next_slot = new_slot
+
+        steps.append(next_slot)
+        shallow_slots[next_slot.row][next_slot.col] = 1
+
+
+    return steps
+
+
+def get_spiraling_out_steps(agent, board_size):
+    """
+    This function return the agent steps, when deciding to cover the world, spiraling from inside to outside.
+    Note: this coverage method is not optimal!
+    :param agent: the agent covering the world
+    :param board_size: self explanatory
+    :return: list of steps
+    """
+    steps = []
+
+    next_slot = Slot(agent.InitPosX, agent.InitPosY)
+
+    # start by going toward the center
+    # start by going toward the closest corner
+    if next_slot.row < board_size / 2:
+        while next_slot.row < board_size / 2:
+            next_slot = next_slot.go_south()
+            steps.append(next_slot)
+            continue
+    else:
+        while next_slot.row >= board_size / 2:
+            next_slot = next_slot.go_north()
+            steps.append(next_slot)
+            continue
+
+    if next_slot.col < board_size / 2:
+        while next_slot.col < board_size / 2:
+            next_slot = next_slot.go_east()
+            steps.append(next_slot)
+            continue
+    else:
+        while next_slot.col >= board_size / 2:
+            next_slot = next_slot.go_west()
+            steps.append(next_slot)
+            continue
+    steps.append(next_slot)
+
+    # after reaching the center, start covering, counter clockwise
+    circ = 1
+    counter = 1
+    while counter <= board_size*board_size:
+        for _ in range(circ):
+            next_slot = next_slot.go_north()
+            steps.append(next_slot)
+            counter += 1
+        for _ in range(circ):
+            next_slot = next_slot.go_east()
+            steps.append(next_slot)
+            counter += 1
+        for _ in range(circ + 1):
+            next_slot = next_slot.go_south()
+            steps.append(next_slot)
+            counter += 1
+        for _ in range(circ + 1):
+            next_slot = next_slot.go_west()
+            steps.append(next_slot)
+            counter += 1
+        circ += 2
+    return steps
+
 
 def run_agent_over_board_full_knowledge_interception_strategy(agent_r, agent_o, board_size_x, board_size_y):
     steps_o = []
@@ -518,3 +658,5 @@ def run_agent_over_board_full_knowledge_interception_strategy(agent_r, agent_o, 
     # play steps for both players and for each step check who covered it first
 
     return steps_r
+
+

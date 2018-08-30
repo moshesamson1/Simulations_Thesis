@@ -7,7 +7,7 @@ import numpy as np
 import SpanningTreeCoverage
 import operator
 import matplotlib.pyplot as plt
-import time
+import itertools
 import pylab
 import os
 import smtplib
@@ -361,20 +361,61 @@ def compute_and_analyze_results_given_o_position(seeds_amount, i_o, _board_size,
         # print "\n=======================================================================================================\n"
 
 
-if __name__ == '__main__':
-    def main():
+def is_there_best_strategy_r_only_positions(averaging_size = 50):
+    """
+    This method tries to find whether there is a better-than-other Sr.
+    Averages over <averaging_size> different 'So's, and for each one check our X options for Sr, finding the average fcc
+    Do that for Y pairs of Ir-Io, trying to prove optimality over different starting positions.
 
-        # for every possible i_r on the board, always with the same strategy for R, average FCC results over 1000
-        # different random STC coverage strategies for O, to see if there is a direct relation between initial
-        # positions' distance and resulted averaged FCC
+    The assumption, based on tests performed here, is that there is some better-than-others strategy So*. Now we try to
+    show, for different strategies, that there is a better-than-others Sr, which we know the heuristic of it (not always
+     stc).
+    :return:
+    """
+    board_size = 50
 
-        i_o = (0, 0)
-        for i_r_x in xrange(8):
-            for i_r_y in xrange(8):
-                i_r = (i_r_x, i_r_y)
-                if i_r == i_o: continue
-                compute_and_analyze_results_given_o_position(seeds_amount=1000, i_o=i_o, _board_size=8, i_r=i_r,
-                                                             send_email=False)
+    while True:
+        # randomly select two different initial positions
+        poss_positions = list(itertools.product(xrange(0, board_size - 1), xrange(0, board_size - 1)))
+        ir, io = rnd.sample(poss_positions, 2)
+
+        board = Board(board_size, board_size)
+
+        # average over 50 different 'So's, trying to find the best Sr
+        random_sum = 0
+        spiraling_out_sum = 0
+        spiraling_in_sum = 0
+        for i in xrange(averaging_size):
+            print  i
+            rnd.seed(i)
+            agent_o = Agent("O", StrategyEnum.RandomSTC, io[0], io[1], board=board)
+
+            agent_r_random = Agent("R", StrategyEnum.SpiralingIn, ir[0], ir[1], board=board)
+            agent_r_spiraling_out = Agent("R", StrategyEnum.SpiralingOut, ir[0], ir[1], board=board)
+            agent_r_spiraling_in = Agent("R", StrategyEnum.SpiralingIn, ir[0], ir[1], board=board)
+
+            game = Game(Board(board.Rows, board.Cols), agent_r_random, agent_o)
+            game.run_game()
+            random_sum += game.get_r_gain()
+
+            game = Game(Board(board.Rows, board.Cols), agent_r_spiraling_in, agent_o)
+            game.run_game(optimality=False)
+            spiraling_in_sum += game.get_r_gain()
+
+            game = Game(Board(board.Rows, board.Cols), agent_r_spiraling_out, agent_o)
+            game.run_game(optimality=False)
+            spiraling_out_sum += game.get_r_gain()
+
+        file = open("data.csv", 'a')
+        file.write(",".join([str(ir[0]), str(ir[1]), str(io[0]), str(io[1]),
+                             str(1.0*random_sum/averaging_size),
+                             str(1.0*spiraling_in_sum/averaging_size),
+                             str(1.0*spiraling_out_sum/averaging_size)]))
+
+
+def main():
+    is_there_best_strategy_r_only_positions()        
+                
 
 if __name__ == "__main__":
     main()
