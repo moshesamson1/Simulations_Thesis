@@ -589,6 +589,7 @@ def get_spiraling_out_steps(agent, board_size):
     steps = []
 
     next_slot = Slot(agent.InitPosX, agent.InitPosY)
+    # next_slot = Slot(36,6)
 
     # start by going toward the center
     # start by going toward the closest corner
@@ -598,7 +599,7 @@ def get_spiraling_out_steps(agent, board_size):
             steps.append(next_slot)
             continue
     else:
-        while next_slot.row >= board_size / 2:
+        while next_slot.row > board_size / 2:
             next_slot = next_slot.go_north()
             steps.append(next_slot)
             continue
@@ -609,33 +610,44 @@ def get_spiraling_out_steps(agent, board_size):
             steps.append(next_slot)
             continue
     else:
-        while next_slot.col >= board_size / 2:
+        while next_slot.col > board_size / 2:
             next_slot = next_slot.go_west()
             steps.append(next_slot)
             continue
-    steps.append(next_slot)
+    # steps.append(next_slot)
 
     # after reaching the center, start covering, counter clockwise
-    circ = 1
+    circ = 0
     counter = 1
-    while counter <= board_size*board_size:
-        for _ in range(circ):
-            next_slot = next_slot.go_north()
-            steps.append(next_slot)
-            counter += 1
-        for _ in range(circ):
-            next_slot = next_slot.go_east()
-            steps.append(next_slot)
-            counter += 1
-        for _ in range(circ + 1):
-            next_slot = next_slot.go_south()
-            steps.append(next_slot)
-            counter += 1
-        for _ in range(circ + 1):
-            next_slot = next_slot.go_west()
-            steps.append(next_slot)
-            counter += 1
-        circ += 2
+    while circ < board_size:
+        circ += 1
+        if circ < board_size:
+            for _ in range(circ):
+                next_slot = next_slot.go_west()
+                steps.append(next_slot)
+                counter += 1
+        if circ < board_size:
+            for _ in range(circ):
+                next_slot = next_slot.go_north()
+                steps.append(next_slot)
+                counter += 1
+
+        circ += 1
+        if circ < board_size:
+            for _ in range(circ):
+                next_slot = next_slot.go_east()
+                steps.append(next_slot)
+                counter += 1
+        if circ < board_size:
+            for _ in range(circ):
+                next_slot = next_slot.go_south()
+                steps.append(next_slot)
+                counter += 1
+
+    for step in steps:
+        if step.row > 49 or step.col > 49 or step.row < 0 or step.col < 0:
+            print steps
+            break
     return steps
 
 

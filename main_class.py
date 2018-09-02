@@ -375,6 +375,9 @@ def is_there_best_strategy_r_only_positions(averaging_size = 50):
     board_size = 50
 
     while True:
+        seed = rnd.random()
+        rnd.seed(seed)
+
         # randomly select two different initial positions
         poss_positions = list(itertools.product(xrange(0, board_size - 1), xrange(0, board_size - 1)))
         ir, io = rnd.sample(poss_positions, 2)
@@ -390,7 +393,7 @@ def is_there_best_strategy_r_only_positions(averaging_size = 50):
             rnd.seed(i)
             agent_o = Agent("O", StrategyEnum.RandomSTC, io[0], io[1], board=board)
 
-            agent_r_random = Agent("R", StrategyEnum.SpiralingIn, ir[0], ir[1], board=board)
+            agent_r_random = Agent("R", StrategyEnum.RandomSTC, ir[0], ir[1], board=board)
             agent_r_spiraling_out = Agent("R", StrategyEnum.SpiralingOut, ir[0], ir[1], board=board)
             agent_r_spiraling_in = Agent("R", StrategyEnum.SpiralingIn, ir[0], ir[1], board=board)
 
@@ -407,10 +410,12 @@ def is_there_best_strategy_r_only_positions(averaging_size = 50):
             spiraling_out_sum += game.get_r_gain()
 
         file = open("data.csv", 'a')
-        file.write(",".join([str(ir[0]), str(ir[1]), str(io[0]), str(io[1]),
+        file.write(",".join([str(seed), str(ir[0]), str(ir[1]), str(io[0]), str(io[1]),
                              str(1.0*random_sum/averaging_size),
                              str(1.0*spiraling_in_sum/averaging_size),
                              str(1.0*spiraling_out_sum/averaging_size)]))
+        file.write("\n")
+        file.close()
 
 
 def main():
