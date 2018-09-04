@@ -393,21 +393,26 @@ def is_there_best_strategy_r_only_positions(averaging_size = 50):
             rnd.seed(i)
             agent_o = Agent("O", StrategyEnum.RandomSTC, io[0], io[1], board=board)
 
-            agent_r_random = Agent("R", StrategyEnum.RandomSTC, ir[0], ir[1], board=board)
-            agent_r_spiraling_out = Agent("R", StrategyEnum.SpiralingOut, ir[0], ir[1], board=board)
-            agent_r_spiraling_in = Agent("R", StrategyEnum.SpiralingIn, ir[0], ir[1], board=board)
+            # agent_r_random = Agent("R", StrategyEnum.RandomSTC, ir[0], ir[1], board=board)
+            # agent_r_spiraling_out = Agent("R", StrategyEnum.SpiralingOut, ir[0], ir[1], board=board)
+            # agent_r_spiraling_in = Agent("R", StrategyEnum.SpiralingIn, ir[0], ir[1], board=board)
+            agent_r_vertical_far = Agent("R", StrategyEnum.VerticalFromFarthestCorner_OpponentAware, ir[0], ir[1], board=board ,agent_o=agent_o)
 
-            game = Game(Board(board.Rows, board.Cols), agent_r_random, agent_o)
+            # game = Game(Board(board.Rows, board.Cols), agent_r_random, agent_o)
+            # game.run_game()
+            # random_sum += game.get_r_gain()
+            #
+            # game = Game(Board(board.Rows, board.Cols), agent_r_spiraling_in, agent_o)
+            # game.run_game(optimality=False)
+            # spiraling_in_sum += game.get_r_gain()
+            #
+            # game = Game(Board(board.Rows, board.Cols), agent_r_spiraling_out, agent_o)
+            # game.run_game(optimality=False)
+            # spiraling_out_sum += game.get_r_gain()
+
+            game = Game(Board(board.Rows, board.Cols), agent_r_vertical_far, agent_o)
             game.run_game()
-            random_sum += game.get_r_gain()
 
-            game = Game(Board(board.Rows, board.Cols), agent_r_spiraling_in, agent_o)
-            game.run_game(optimality=False)
-            spiraling_in_sum += game.get_r_gain()
-
-            game = Game(Board(board.Rows, board.Cols), agent_r_spiraling_out, agent_o)
-            game.run_game(optimality=False)
-            spiraling_out_sum += game.get_r_gain()
 
         file = open("data.csv", 'a')
         file.write(",".join([str(seed), str(ir[0]), str(ir[1]), str(io[0]), str(io[1]),

@@ -69,7 +69,7 @@ class StrategyEnum:
         pass
 
     VerticalCoverageCircular, HorizontalCoverageCircular, FullKnowledgeInterceptionCircular, QuartersCoverageCircular,\
-        RandomSTC, VerticalCoverageNonCircular, SpiralingOut, SpiralingIn = range(8)
+        RandomSTC, VerticalCoverageNonCircular, SpiralingOut, SpiralingIn, VerticalFromFarthestCorner_OpponentAware = range(9)
 
 
 class Agent:
@@ -104,6 +104,8 @@ class Agent:
             self.steps = get_spiraling_in_steps(self, len(self.gameBoard.Slots))
         elif self.Strategy == StrategyEnum.SpiralingOut:
             self.steps = get_spiraling_out_steps(self, len(self.gameBoard.Slots))
+        elif self.Strategy == StrategyEnum.VerticalFromFarthestCorner_OpponentAware:
+            self.steps = get_vertical_coverage_farthest_corner_opponent_aware_steps(self, len(self.gameBoard.Slots), agent_o)
 
 
 class Game:
@@ -504,6 +506,7 @@ def get_horizontal_coverage_steps(agent, board_size_x, board_size_y):
 
     return steps
 
+
 def get_spiraling_in_steps(agent, board_size):
     """
     This function return the agent steps, when deciding to cover the world, spiraling from outside to inside.
@@ -650,7 +653,6 @@ def get_spiraling_out_steps(agent, board_size):
             break
     return steps
 
-
 def run_agent_over_board_full_knowledge_interception_strategy(agent_r, agent_o, board_size_x, board_size_y):
     steps_o = []
 
@@ -670,5 +672,11 @@ def run_agent_over_board_full_knowledge_interception_strategy(agent_r, agent_o, 
     # play steps for both players and for each step check who covered it first
 
     return steps_r
+
+def get_vertical_coverage_farthest_corner_opponent_aware_steps(self, board_size, agent_o):
+    assert agent_o is not None
+
+    # find the farthest
+
 
 
