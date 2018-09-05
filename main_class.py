@@ -317,7 +317,7 @@ def analyze_results(seeds, values, i_o, i_r, figure_label=""):
     plt.close('all')
 
 
-def send_files_via_email(text, title):
+def send_files_via_email(text, title, file_name):
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.starttls()
     server.login("moshe.samson@mail.huji.ac.il", "moshe_samson770")
@@ -330,15 +330,15 @@ def send_files_via_email(text, title):
 
     msg.attach(MIMEText(text))
 
-    for f in [title + "_max_path.png", title + "_fcc_hmValues_graph.png"]:
-        with open(f, "rb") as fil:
-            part = MIMEApplication(
-                fil.read(),
-                Name=basename(f)
-            )
-        # After the file is closed
-        part['Content-Disposition'] = 'attachment; filename="%s"' % basename(f)
-        msg.attach(part)
+    with open(file_name, "rb") as fil:
+        part = MIMEApplication(
+            fil.read(),
+            Name=basename(file_name)
+        )
+
+    # After the file is closed
+    part['Content-Disposition'] = 'attachment; filename="%s"' % basename(file_name)
+    msg.attach(part)
     server.sendmail("moshe.samson@mail.huji.ac.il", "samson.moshe@gmail.com", msg.as_string())
     server.quit()
 
@@ -358,7 +358,7 @@ def compute_and_analyze_results_given_o_position(seeds_amount, i_o, _board_size,
     if send_email:
         send_files_via_email(text="Execution took " + str(t1 - t0) + " seconds. max_val: " + str(max_val), title=label)
 
-        # print "\n=======================================================================================================\n"
+        # print "\n==================================================================================================\n"
 
 
 def is_there_best_strategy_r_only_positions(averaging_size = 50):
@@ -373,8 +373,14 @@ def is_there_best_strategy_r_only_positions(averaging_size = 50):
     :return:
     """
     board_size = 50
+    counter_rows = 0
 
-    while True:
+    data_file = open("data.csv", 'a')
+    data_file.write(",".join(["seed", "ir[0]", "ir[1]", "io[0]", "io[1]", "E[random]", "E[Spiraling in]",
+                              "E[Spiraling out]", "E[Smart vertical]", "E[Smart semi circle]"]))
+    data_file.write("\n")
+
+    while counter_rows < 1000:
         seed = rnd.random()
         rnd.seed(seed)
 
@@ -384,43 +390,64 @@ def is_there_best_strategy_r_only_positions(averaging_size = 50):
 
         board = Board(board_size, board_size)
 
-        # average over 50 different 'So's, trying to find the best Sr
+        # dumb R agents
+        agent_r_random = Agent("R", StrategyEnum.RandomSTC, ir[0], ir[1], board=board)
+        agent_r_spiraling_out = Agent("R", StrategyEnum.SpiralingOut, ir[0], ir[1], board=board)
+        agent_r_spiraling_in = Agent("R", StrategyEnum.SpiralingIn, ir[0], ir[1], board=board)
+
+        # sums
         random_sum = 0
         spiraling_out_sum = 0
         spiraling_in_sum = 0
+        smart_vertical_sum = 0
+        smart_semi_circle_sum = 0
+
         for i in xrange(averaging_size):
-            print  i
+            print i
             rnd.seed(i)
             agent_o = Agent("O", StrategyEnum.RandomSTC, io[0], io[1], board=board)
 
-            # agent_r_random = Agent("R", StrategyEnum.RandomSTC, ir[0], ir[1], board=board)
-            # agent_r_spiraling_out = Agent("R", StrategyEnum.SpiralingOut, ir[0], ir[1], board=board)
-            # agent_r_spiraling_in = Agent("R", StrategyEnum.SpiralingIn, ir[0], ir[1], board=board)
-            agent_r_vertical_far = Agent("R", StrategyEnum.VerticalFromFarthestCorner_OpponentAware, ir[0], ir[1], board=board ,agent_o=agent_o)
+            # smart R agents
+            agent_r_vertical_far = Agent("R", StrategyEnum.VerticalFromFarthestCorner_OpponentAware, ir[0], ir[1],
+                                         board=board, agent_o=agent_o)
+            agent_r_semi_circle = Agent("R", StrategyEnum.SemiCyclingFromFarthestCorner_OpponentAware, ir[0], ir[1],
+                                        board=board, agent_o=agent_o)
 
-            # game = Game(Board(board.Rows, board.Cols), agent_r_random, agent_o)
-            # game.run_game()
-            # random_sum += game.get_r_gain()
-            #
-            # game = Game(Board(board.Rows, board.Cols), agent_r_spiraling_in, agent_o)
-            # game.run_game(optimality=False)
-            # spiraling_in_sum += game.get_r_gain()
-            #
-            # game = Game(Board(board.Rows, board.Cols), agent_r_spiraling_out, agent_o)
-            # game.run_game(optimality=False)
-            # spiraling_out_sum += game.get_r_gain()
+            # create and run games
+            game = Game(Board(board.Rows, board.Cols), agent_r_random, agent_o)
+            game.run_game()
+            random_sum += game.get_r_gain()
+
+            game = Game(Board(board.Rows, board.Cols), agent_r_spiraling_in, agent_o)
+            game.run_game(optimality=False)
+            spiraling_in_sum += game.get_r_gain()
+
+            game = Game(Board(board.Rows, board.Cols), agent_r_spiraling_out, agent_o)
+            game.run_game(optimality=False)
+            spiraling_out_sum += game.get_r_gain()
 
             game = Game(Board(board.Rows, board.Cols), agent_r_vertical_far, agent_o)
-            game.run_game()
+            game.run_game(optimality=False)
+            smart_vertical_sum += game.get_r_gain()
 
+            game = Game(Board(board.Rows, board.Cols), agent_r=agent_r_semi_circle, agent_o=agent_o)
+            game.run_game(optimality=False)
+            smart_semi_circle_sum += game.get_r_gain()
 
-        file = open("data.csv", 'a')
-        file.write(",".join([str(seed), str(ir[0]), str(ir[1]), str(io[0]), str(io[1]),
-                             str(1.0*random_sum/averaging_size),
-                             str(1.0*spiraling_in_sum/averaging_size),
-                             str(1.0*spiraling_out_sum/averaging_size)]))
-        file.write("\n")
-        file.close()
+        # print averaged data
+        data_file = open("data.csv", 'a')
+        data_file.write(",".join([str(seed), str(ir[0]), str(ir[1]), str(io[0]), str(io[1]),
+                                  str(1.0 * random_sum / averaging_size),
+                                  str(1.0 * spiraling_in_sum / averaging_size),
+                                  str(1.0 * spiraling_out_sum / averaging_size),
+                                  str(1.0 * smart_vertical_sum / averaging_size),
+                                  str(1.0 * smart_semi_circle_sum / averaging_size)]))
+        data_file.write("\n")
+        data_file.close()
+        counter_rows += 1
+
+        if counter_rows % 49 == 0:
+            send_files_via_email("", "Simulations results", "data.csv")
 
 
 def main():

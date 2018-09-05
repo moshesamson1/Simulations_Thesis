@@ -69,7 +69,8 @@ class StrategyEnum:
         pass
 
     VerticalCoverageCircular, HorizontalCoverageCircular, FullKnowledgeInterceptionCircular, QuartersCoverageCircular,\
-        RandomSTC, VerticalCoverageNonCircular, SpiralingOut, SpiralingIn, VerticalFromFarthestCorner_OpponentAware = range(9)
+        RandomSTC, VerticalCoverageNonCircular, SpiralingOut, SpiralingIn, VerticalFromFarthestCorner_OpponentAware,\
+        SemiCyclingFromFarthestCorner_OpponentAware = range(10)
 
 
 class Agent:
@@ -105,7 +106,11 @@ class Agent:
         elif self.Strategy == StrategyEnum.SpiralingOut:
             self.steps = get_spiraling_out_steps(self, len(self.gameBoard.Slots))
         elif self.Strategy == StrategyEnum.VerticalFromFarthestCorner_OpponentAware:
-            self.steps = get_vertical_coverage_farthest_corner_opponent_aware_steps(self, len(self.gameBoard.Slots), agent_o)
+            self.steps = get_vertical_coverage_farthest_corner_opponent_aware_steps(self, len(self.gameBoard.Slots),
+                                                                                    agent_o=agent_o)
+        elif self.Strategy == StrategyEnum.SemiCyclingFromFarthestCorner_OpponentAware:
+            self.steps = get_semi_cycle_coverage_farthest_corner_opponent_aware_steps(self, len(self.gameBoard.Slots),
+                                                                                  agent_o=agent_o)
 
 
 class Game:
@@ -115,7 +120,7 @@ class Game:
         self._agentR = agent_r
         self._agentO = agent_o
 
-    def run_game(self, optimality = True):
+    def run_game(self, optimality=True):
         steps_r = self._agentR.steps
         steps_o = self._agentO.steps
 
@@ -558,7 +563,6 @@ def get_spiraling_in_steps(agent, board_size):
         elif next_slot.row == dist_from_edge and next_slot.col + dist_from_edge >= board_size - 1 :
             direction = 'w'
 
-
         if direction == 's':
             new_slot = next_slot.go_south()
         elif direction == 'e':
@@ -577,7 +581,6 @@ def get_spiraling_in_steps(agent, board_size):
         steps.append(next_slot)
         shallow_slots[next_slot.row][next_slot.col] = 1
 
-
     return steps
 
 
@@ -595,7 +598,6 @@ def get_spiraling_out_steps(agent, board_size):
     # next_slot = Slot(36,6)
 
     # start by going toward the center
-    # start by going toward the closest corner
     if next_slot.row < board_size / 2:
         while next_slot.row < board_size / 2:
             next_slot = next_slot.go_south()
@@ -653,6 +655,7 @@ def get_spiraling_out_steps(agent, board_size):
             break
     return steps
 
+
 def run_agent_over_board_full_knowledge_interception_strategy(agent_r, agent_o, board_size_x, board_size_y):
     steps_o = []
 
@@ -673,10 +676,168 @@ def run_agent_over_board_full_knowledge_interception_strategy(agent_r, agent_o, 
 
     return steps_r
 
+
+def go_from_a_to_b(a, b):
+    """
+    Returns a list of steps from A to B
+    :param a: First Slot
+    :param b: Second Slot
+    :return: list of steps from A to B
+    """
+
+    current_step = a
+    steps_to_return = [current_step]
+
+    while not current_step.row == b.row:
+        current_step = current_step.go_north() if b.row < a.row else current_step.go_south()
+        steps_to_return.append(current_step)
+
+    while not current_step.col == b.col:
+        current_step = current_step.go_east() if b.col > a.col else current_step.go_west()
+        steps_to_return.append(current_step)
+
+    return steps_to_return
+
+
+def get_farthest_corner(a, board_size):
+    """
+    return the farthest corner from a given position
+    :param a: the given position
+    :param board_size: the size of the given game board
+    :return: the farthest corner from A
+    """
+    f_row = 0 if a.row < board_size / 2 else board_size - 1
+    f_col = 0 if a.col < board_size / 2 else board_size - 1
+    return Slot(f_row, f_col)
+
+
 def get_vertical_coverage_farthest_corner_opponent_aware_steps(self, board_size, agent_o):
+    """
+    This function returns the coverage steps,when covering knowing io, and start covering vertically from the farthest
+    corner.
+    :param self:
+    :param board_size:
+    :param agent_o:
+    :return: the coverage steps.
+    """
     assert agent_o is not None
+    steps = []
 
-    # find the farthest
+    # go to the farthest corner
+    steps.extend(go_from_a_to_b(a=Slot(self.InitPosX, self.InitPosY),
+                                b=get_farthest_corner(Slot(agent_o.InitPosX, agent_o.InitPosY), board_size=board_size)))
 
+    # from there, cover vertically
+    current_slot = steps[-1]
+    v_dir = 'u' if current_slot.row == board_size - 1 else 'd'
+    h_dir = 'l' if current_slot.col == board_size - 1 else 'r'
+    counter = 1
+    while counter <= board_size*board_size:
+        if v_dir == 'u':
+            while current_slot.row > 0:
+                current_slot = current_slot.go_north()
+                steps.append(current_slot)
+                counter += 1
+
+            if counter == board_size*board_size:
+                break
+
+            current_slot = current_slot.go_west() if h_dir == 'l' else current_slot.go_east()
+            v_dir = 'd'
+            steps.append(current_slot)
+            counter += 1
+            continue
+        else:
+            while current_slot.row < board_size - 1:
+                current_slot = current_slot.go_south()
+                steps.append(current_slot)
+                counter += 1
+
+            if counter == board_size*board_size:
+                break
+
+            current_slot = current_slot.go_west() if h_dir == 'l' else current_slot.go_east()
+            v_dir = 'u'
+            steps.append(current_slot)
+            counter += 1
+            continue
+
+    return steps
+
+
+def get_semi_cycle_coverage_farthest_corner_opponent_aware_steps(self, board_size, agent_o):
+    """
+    This function returns the coverage steps, when covering knowing io, starting from the farthest corner from io, and
+    covering semi-cyclic - covering the closer layers first.
+    :param self:
+    :param board_size:
+    :param agent_o:
+    :return: the coverage steps.
+    """
+    assert agent_o is not None
+    steps = []
+
+    # go to the farthest corner
+    steps.extend(go_from_a_to_b(a=Slot(self.InitPosX, self.InitPosY),
+                                b=get_farthest_corner(Slot(agent_o.InitPosX, agent_o.InitPosY), board_size=board_size)))
+
+    # from there, cover semi-cyclic
+    current_slot = steps[-1]
+    v_dir = 'u' if current_slot.row == board_size - 1 else 'd'
+    h_dir = 'r' if current_slot.col == board_size - 1 else 'l'
+    start_vertical = True
+    distance = 1
+    counter = 1
+
+    # initial horizontal step
+    current_slot = current_slot.go_west() if h_dir == 'r' else current_slot.go_east()
+    steps.append(current_slot)
+    counter += 1
+
+    while counter <= board_size*board_size:
+        if start_vertical:
+            # going vertically
+            for _ in xrange(distance):
+                current_slot = current_slot.go_north() if v_dir == 'u' else current_slot.go_south()
+                steps.append(current_slot)
+                counter += 1
+
+            # going horizontally
+            for _ in xrange(distance):
+                current_slot = current_slot.go_west() if h_dir == 'l' else current_slot.go_east()
+                steps.append(current_slot)
+                counter += 1
+
+            # final vertical step
+            if counter < board_size * board_size:
+                current_slot = current_slot.go_north() if v_dir == 'u' else current_slot.go_south()
+                steps.append(current_slot)
+                counter += 1
+
+        else:
+            # going horizontally
+            for _ in xrange(distance):
+                current_slot = current_slot.go_west() if h_dir == 'l' else current_slot.go_east()
+                steps.append(current_slot)
+                counter += 1
+
+            # going vertically
+            for _ in xrange(distance):
+                current_slot = current_slot.go_north() if v_dir == 'u' else current_slot.go_south()
+                steps.append(current_slot)
+                counter += 1
+
+            # final horizontal step
+            if counter < board_size*board_size:
+                current_slot = current_slot.go_west() if h_dir == 'l' else current_slot.go_east()
+                steps.append(current_slot)
+                counter += 1
+
+        start_vertical = not start_vertical
+        h_dir = 'r' if h_dir == 'l' else 'l'
+        v_dir = 'u' if v_dir == 'd' else 'd'
+        distance += 1
+
+    return steps
 
 
