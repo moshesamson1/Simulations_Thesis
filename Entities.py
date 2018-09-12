@@ -54,6 +54,34 @@ class Slot:
     def go_south(self):
         return Slot(self.row + 1, self.col)
 
+    def go(self, s, opposite_direction = False):
+        """
+        Go South, East, North or West, according to the given parameter.
+        :param s: Must by 'd', 'r','n','l'
+        :param opposite_direction: False by default. Move to the opposite direction
+        :return: the new slot
+        """
+        assert s == 'u' or s == 'd' or s == 'r' or s == 'l'
+
+        if opposite_direction:
+            if s == 'u':
+                s = 'd'
+            if s == 'd':
+                s = 'u'
+            if s == 'r':
+                s = 'l'
+            if s == 'l':
+                s = 'r'
+
+        if s == 'u':
+            return self.go_north()
+        if s == 'd':
+            return self.go_south()
+        if s == 'r':
+            return self.go_east()
+        if s == 'l':
+            return self.go_west()
+
     def to_tuple(self):
         return self.row, self.col
 
@@ -70,7 +98,10 @@ class StrategyEnum:
 
     VerticalCoverageCircular, HorizontalCoverageCircular, FullKnowledgeInterceptionCircular, QuartersCoverageCircular,\
         RandomSTC, VerticalCoverageNonCircular, SpiralingOut, SpiralingIn, VerticalFromFarthestCorner_OpponentAware,\
-        SemiCyclingFromFarthestCorner_OpponentAware = range(10)
+        SemiCyclingFromFarthestCorner_OpponentAware, SpiralingOut_OpponentAware = range(11)
+
+
+
 
 
 class Agent:
@@ -111,7 +142,9 @@ class Agent:
         elif self.Strategy == StrategyEnum.SemiCyclingFromFarthestCorner_OpponentAware:
             self.steps = get_semi_cycle_coverage_farthest_corner_opponent_aware_steps(self, len(self.gameBoard.Slots),
                                                                                   agent_o=agent_o)
-
+        elif self.Strategy == StrategyEnum.SpiralingOut_OpponentAware:
+            self.steps = \
+                get_spiraling_out_from_opp_opponent_aware(self, len(self.gameBoard.Slots), agent_o=agent_o)
 
 class Game:
 
@@ -840,4 +873,57 @@ def get_semi_cycle_coverage_farthest_corner_opponent_aware_steps(self, board_siz
 
     return steps
 
+
+def get_spiraling_out_from_opp_opponent_aware(self, board_size, agent_o):
+    """
+    This function returns the coverage steps, choosing to start from the initial position of the opponent, io, and from
+    there cover the world circling out.
+    For convenience purposes, we rounding to the closest even position, and from there covering as explained above.
+    :param self: the agent
+    :param board_size:
+    :param agent_o:
+    :return:
+    """
+    #TODO: create strategy class. Create strategies for all the other options, and put the relevant methods inside each item
+    steps = []
+
+    # Make assertions over opp initial position: we want it to be with even column and odd row.
+    # Then, go to the fixed initial position
+    fixed_io = Slot(agent_o.InitPosX, agent_o.InitPosY)
+    if fixed_io.row % 2 == 0:
+        fixed_io.row += 1
+    if fixed_io.col % 2 != 0:
+        fixed_io.col -= 1
+    steps.extend(go_from_a_to_b(Slot(self.InitPosX, self.InitPosY), fixed_io))
+
+    # cover the world, circling from this position out. Taking big steps to one direction to compensate for the other.
+    h_dir = 'l' if fixed_io.col > board_size / 2 else 'r'
+    v_dir = 'u' if fixed_io.row > board_size / 2 else 'd'
+
+    v_step_size = (board_size - fixed_io.row - 1) / (fixed_io.row + 1)
+    h_step_size = (board_size - fixed_io.col - 1) / (fixed_io.col + 1)
+
+    current_slot = steps[-1]
+
+    while True:
+        # going horizontally long
+        for _ in h_step_size:
+            current_slot.go(h_dir)
+            steps.append(current_slot)
+
+        current_slot = current_slot.go(v_dir)
+        steps.append(current_slot)
+
+        # going horizontally back, covering vertically
+        for _ in xrange(h_step_size+2):
+            for i in xrange(v_step_size):
+                current_slot = current_slot.go(v_dir, opposite_direction=False if i % 2 == 0 else True)
+                steps.append(current_slot)
+
+            current_slot = current_slot.go(h_dir, opposite_direction=True)
+            steps.append(current_slot)
+
+
+        # going vertically back
+        #todo: doesn't cover all the cases! finish method!
 
