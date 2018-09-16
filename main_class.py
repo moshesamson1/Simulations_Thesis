@@ -1,4 +1,4 @@
-from Entities import *
+from Entities import Board, StrategyEnum, Agent, Slot, Game
 from random import randint
 import random as rnd
 from joblib import Parallel, delayed
@@ -377,7 +377,7 @@ def is_there_best_strategy_r_only_positions(averaging_size = 50):
 
     data_file = open("data.csv", 'a')
     data_file.write(",".join(["seed", "ir[0]", "ir[1]", "io[0]", "io[1]", "E[random]", "E[Spiraling in]",
-                              "E[Spiraling out]", "E[Smart vertical]", "E[Smart semi circle]"]))
+                              "E[Spiraling out]", "E[Smart vertical]", "E[Smart semi circle]", "E[Smart cycle-out Io]"]))
     data_file.write("\n")
 
     while counter_rows < 1000:
@@ -401,6 +401,7 @@ def is_there_best_strategy_r_only_positions(averaging_size = 50):
         spiraling_in_sum = 0
         smart_vertical_sum = 0
         smart_semi_circle_sum = 0
+        smart_cycle_out_io_sum = 0
 
         for i in xrange(averaging_size):
             print i
@@ -412,6 +413,8 @@ def is_there_best_strategy_r_only_positions(averaging_size = 50):
                                          board=board, agent_o=agent_o)
             agent_r_semi_circle = Agent("R", StrategyEnum.SemiCyclingFromFarthestCorner_OpponentAware, ir[0], ir[1],
                                         board=board, agent_o=agent_o)
+            agent_r_cycle_outside_io = Agent("R", StrategyEnum.CircleOutsideFromIo, ir[0], ir[1],
+                                             board=board, agent_o=agent_o)
 
             # create and run games
             game = Game(Board(board.Rows, board.Cols), agent_r_random, agent_o)
@@ -434,6 +437,10 @@ def is_there_best_strategy_r_only_positions(averaging_size = 50):
             game.run_game(optimality=False)
             smart_semi_circle_sum += game.get_r_gain()
 
+            game = Game(Board(board.Rows, board.Cols), agent_r=agent_r_cycle_outside_io, agent_o=agent_o)
+            game.run_game(optimality=False)
+            smart_cycle_out_io_sum += game.get_r_gain()
+
         # print averaged data
         data_file = open("data.csv", 'a')
         data_file.write(",".join([str(seed), str(ir[0]), str(ir[1]), str(io[0]), str(io[1]),
@@ -441,7 +448,8 @@ def is_there_best_strategy_r_only_positions(averaging_size = 50):
                                   str(1.0 * spiraling_in_sum / averaging_size),
                                   str(1.0 * spiraling_out_sum / averaging_size),
                                   str(1.0 * smart_vertical_sum / averaging_size),
-                                  str(1.0 * smart_semi_circle_sum / averaging_size)]))
+                                  str(1.0 * smart_semi_circle_sum / averaging_size),
+                                  str(1.0 * smart_cycle_out_io_sum / averaging_size)]))
         data_file.write("\n")
         data_file.close()
         counter_rows += 1

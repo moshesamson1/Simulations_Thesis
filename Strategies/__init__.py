@@ -1,0 +1,11 @@
+__all__ = ["CircleOutsideFromIo_Strategy",
+           "VerticalCircularCoverage_Strategy",
+           "HorizontalCircularCoverage_Strategy",
+           "InterceptThenCopy_Strategy",
+           "CoverByQuarters_Strategy",
+           "STC_Strategy",
+           "VerticalNonCircularCoverage_Strategy",
+           "CircleInsideFromCornerFarthestFromIo_Strategy",
+           "CircleOutsideFromBoardCenter_Strategy",
+           "VerticalCoverageFromCornerFarthestFromIo_Strategy",
+           "CircleOutsideFromCornerFarthestFromIo_Strategy"]
