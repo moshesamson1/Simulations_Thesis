@@ -14,49 +14,38 @@ class CircleOutsideFromIo_Strategy(Strategy):
         :return:
         """
 
-        # Make assertions over opp initial position: we want it to be with even column and odd row.
-        # Then, go to the fixed initial position
         fixed_io = Slot(agent_o.InitPosX, agent_o.InitPosY)
-        if fixed_io.row % 2 == 0:
-            fixed_io.row += 1
-        if fixed_io.col % 2 != 0:
-            fixed_io.col -= 1
         self.steps.extend(
             Strategy.go_from_a_to_b(
                 Slot(agent_r.InitPosX, agent_r.InitPosY),
                 fixed_io))
 
-        # cover the world, circling from this position out. Taking big steps to one direction to compensate for the other.
+        # cover the world, circling from this position out.
         current_slot = self.steps[-1]
         step_size = 1
         counter = 1
 
-        while counter < board_size * board_size:
-            # go horizontally
-            for _ in xrange(step_size):
-                current_slot = current_slot.go('r')
-                counter += 1
-                if current_slot.row < board_size and current_slot.col < board_size:
-                    self.steps.append(current_slot)
-            # go vertically
-            for _ in xrange(step_size):
-                current_slot = current_slot.go('u')
-                counter += 1
-                if current_slot.row < board_size and current_slot.col < board_size:
-                    self.steps.append(current_slot)
+        b = [[0 for i in xrange(board_size)] for j in xrange(board_size)]
+        b[current_slot.row][current_slot.col] = 1
+
+        while sum(map(sum, b)) < board_size*board_size:
+            # go horizontally right then vertically up
+            for dir in ['r','u']:
+                for _ in xrange(step_size):
+                    current_slot = current_slot.go(dir)
+                    counter += 1
+                    if 0 <= current_slot.row < board_size and 0 <= current_slot.col < board_size:
+                        self.steps.append(current_slot)
+                        b[current_slot.row][current_slot.col] = 1
 
             step_size += 1
-            # go horizontally
-            for _ in xrange(step_size):
-                current_slot = current_slot.go('l')
-                counter += 1
-                if current_slot.row < board_size and current_slot.col < board_size:
-                    self.steps.append(current_slot)
-            # go vertically
-            for _ in xrange(step_size):
-                current_slot = current_slot.go('d')
-                counter += 1
-                if current_slot.row < board_size and current_slot.col < board_size:
-                    self.steps.append(current_slot)
-
+            # go horizontally left then vertically down
+            for dir in ['l','d']:
+                for _ in xrange(step_size):
+                    current_slot = current_slot.go(dir)
+                    counter += 1
+                    if 0 <= current_slot.row < board_size and 0 <= current_slot.col < board_size:
+                        self.steps.append(current_slot)
+                        b[current_slot.row][current_slot.col] = 1
+            step_size += 1
         return self.steps

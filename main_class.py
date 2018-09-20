@@ -1,3 +1,5 @@
+from numpy.ma import average
+
 from Entities import Board, StrategyEnum, Agent, Slot, Game
 from random import randint
 import random as rnd
@@ -459,7 +461,7 @@ def is_there_best_strategy_r_only_positions(averaging_size = 50):
 
 
 def main():
-    is_there_best_strategy_r_only_positions()        
+    is_there_best_strategy_r_only_positions(averaging_size=50)
                 
 
 if __name__ == "__main__":
