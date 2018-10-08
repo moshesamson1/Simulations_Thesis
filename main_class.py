@@ -1,6 +1,4 @@
-from numpy.ma import average
-
-from Entities import Board, StrategyEnum, Agent, Slot, Game
+from Entities import Board, StrategyEnum, Agent, Slot, Game, send_files_via_email
 from random import randint
 import random as rnd
 from joblib import Parallel, delayed
@@ -12,13 +10,11 @@ import matplotlib.pyplot as plt
 import itertools
 import pylab
 import os
-import smtplib
-from os.path import basename
-from email.mime.application import MIMEApplication
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.utils import COMMASPACE, formatdate
+
+
 import time
+
+
 
 So_seed = 123456789
 
@@ -43,7 +39,6 @@ def get_average_gain_no_information_job(board_size_x, board_size_y, seed_code):
     gain = game.get_r_gain()
 
     if not (gain + game.get_o_gain() == board_size_x * board_size_y):
-        print game.board
         print "Error: gains are wrong!"
     return gain
 
@@ -319,31 +314,6 @@ def analyze_results(seeds, values, i_o, i_r, figure_label=""):
     plt.close('all')
 
 
-def send_files_via_email(text, title, file_name):
-    server = smtplib.SMTP('smtp.gmail.com', 587)
-    server.starttls()
-    server.login("moshe.samson@mail.huji.ac.il", "moshe_samson770")
-
-    msg = MIMEMultipart()
-    msg['From'] = "moshe.samson@mail.huji.ac.il"
-    msg['To'] = COMMASPACE.join("samson.moshe@gmail.com")
-    msg['Date'] = formatdate(localtime=True)
-    msg['Subject'] = title
-
-    msg.attach(MIMEText(text))
-
-    with open(file_name, "rb") as fil:
-        part = MIMEApplication(
-            fil.read(),
-            Name=basename(file_name)
-        )
-
-    # After the file is closed
-    part['Content-Disposition'] = 'attachment; filename="%s"' % basename(file_name)
-    msg.attach(part)
-    server.sendmail("moshe.samson@mail.huji.ac.il", "samson.moshe@gmail.com", msg.as_string())
-    server.quit()
-
 
 def compute_and_analyze_results_given_o_position(seeds_amount, i_o, _board_size, i_r, send_email):
     t0 = time.time()
@@ -363,9 +333,9 @@ def compute_and_analyze_results_given_o_position(seeds_amount, i_o, _board_size,
         # print "\n==================================================================================================\n"
 
 
-def is_there_best_strategy_r_only_positions(averaging_size = 50):
+def is_there_best_strategy_r_only_positions(averaging_size = 100):
     """
-    This method tries to find whether there is a better-than-other Sr.
+    This method tries to find whether there is a better-than-random Sr.
     Averages over <averaging_size> different 'So's, and for each one check our X options for Sr, finding the average fcc
     Do that for Y pairs of Ir-Io, trying to prove optimality over different starting positions.
 
@@ -374,7 +344,7 @@ def is_there_best_strategy_r_only_positions(averaging_size = 50):
      stc).
     :return:
     """
-    board_size = 50
+    board_size = 100
     counter_rows = 0
 
     data_file = open("data.csv", 'a')
@@ -382,7 +352,7 @@ def is_there_best_strategy_r_only_positions(averaging_size = 50):
                               "E[Spiraling out]", "E[Smart vertical]", "E[Smart semi circle]", "E[Smart cycle-out Io]"]))
     data_file.write("\n")
 
-    while counter_rows < 1000:
+    while counter_rows < 100:
         seed = rnd.random()
         rnd.seed(seed)
 
@@ -406,8 +376,7 @@ def is_there_best_strategy_r_only_positions(averaging_size = 50):
         smart_cycle_out_io_sum = 0
 
         for i in xrange(averaging_size):
-            print i
-            rnd.seed(i)
+            print "iteration: " + str(i) + " in round " + str(counter_rows)
             agent_o = Agent("O", StrategyEnum.RandomSTC, io[0], io[1], board=board)
 
             # smart R agents
@@ -456,12 +425,77 @@ def is_there_best_strategy_r_only_positions(averaging_size = 50):
         data_file.close()
         counter_rows += 1
 
-        if counter_rows % 49 == 0:
-            send_files_via_email("", "Simulations results", "data.csv")
+        # if counter_rows % 49 == 0:
+        #     send_files_via_email("", "Simulations results", "data.csv")
+
+
+def search_for_best_strategy():
+    """
+    This method tries to find wither there are some better-than_random STC strategy. The best strategy covered so-far,
+    cover from the center outside, yield results little above average. We want to know how far can we reach. That is,
+    what is the best strategy when can hope to achieve.
+    :return: tuple, indicating best strategy seed, and correspondent result.
+    """
+
+    board_size = 50
+    data_file = open("data.csv", 'a')
+
+    for seed in xrange(1000):
+        # seed indicates the seed. For that specific seed, average over X iterations, and return the expected value,
+        # when for all iterations, io starts at the same position, and create strategy randomly
+
+        # randomly select two different initial positions
+        poss_positions = list(itertools.product(xrange(0, board_size - 1), xrange(0, board_size - 1)))
+        ir, io = rnd.sample(poss_positions, 2)
+
+        board = Board(board_size, board_size)
+
+        rnd.seed(seed)
+        agent_r_random = Agent("R", StrategyEnum.RandomSTC, ir[0], ir[1], board=board)
+        random_sum = 0
+        for j in xrange(100):
+            agent_o = Agent("O", StrategyEnum.RandomSTC, io[0], io[1], board=board)
+            game = Game(Board(board.Rows, board.Cols), agent_r_random, agent_o)
+            game.run_game()
+            random_sum += game.get_r_gain()
+        result = random_sum / 100.0
+
+        print "seed: " + str(seed) + " -> " + str(result)
+        data_file.write(",".join([str(seed), str(result)]))
+        data_file.write("\n")
+    data_file.close()
+
+
+def check_best_strategy(seed):
+    board_size = 50
+    data_file = open("data.csv", 'a')
+
+    for iteration in xrange(500):
+        # randomly select two different initial positions
+        poss_positions = list(itertools.product(xrange(0, board_size - 1), xrange(0, board_size - 1)))
+        ir, io = rnd.sample(poss_positions, 2)
+        board = Board(board_size, board_size)
+
+        rnd.seed(seed)
+        agent_r_random = Agent("R", StrategyEnum.RandomSTC, ir[0], ir[1], board=board)
+        random_sum = 0
+
+        for _ in xrange(100):
+            agent_o = Agent("O", StrategyEnum.RandomSTC, io[0], io[1], board=board)
+            game = Game(Board(board.Rows, board.Cols), agent_r_random, agent_o)
+            game.run_game()
+            random_sum += game.get_r_gain()
+
+        result = random_sum / 100.0
+        print "(" + str(iteration) + ")" + " ir: " + str(ir) + ", io: " + str(io) + ", result: " + str(result)
 
 
 def main():
-    is_there_best_strategy_r_only_positions(averaging_size=50)
+    # is_there_best_strategy_r_only_positions(averaging_size=50)
+
+    # search_for_best_strategy()
+    
+    check_best_strategy(seed=345)
                 
 
 if __name__ == "__main__":

@@ -1,5 +1,12 @@
 from abc import ABCMeta
 from abc import abstractmethod
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.utils import COMMASPACE, formatdate
+from os.path import basename
+import smtplib
+
 
 class Board:
 
@@ -125,7 +132,7 @@ class Game:
         steps_r = self._agentR.steps
         steps_o = self._agentO.steps
 
-        # print steps_o
+
         if optimality:
             assert len(steps_o) == len(steps_r)
 
@@ -244,3 +251,29 @@ class Strategy:
             return CircleOutsideFromCornerFarthestFromIo_Strategy.CircleOutsideFromCornerFarthestFromIo_Strategy()
         elif strategy_enum == StrategyEnum.CircleOutsideFromIo:
             return CircleOutsideFromIo_Strategy.CircleOutsideFromIo_Strategy()
+
+
+def send_files_via_email(text, title, file_name):
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login("moshe.samson@mail.huji.ac.il", "moshe_samson770")
+
+    msg = MIMEMultipart()
+    msg['From'] = "moshe.samson@mail.huji.ac.il"
+    msg['To'] = COMMASPACE.join("samson.moshe@gmail.com")
+    msg['Date'] = formatdate(localtime=True)
+    msg['Subject'] = title
+
+    msg.attach(MIMEText(text))
+
+    with open(file_name, "rb") as fil:
+        part = MIMEApplication(
+            fil.read(),
+            Name=basename(file_name)
+        )
+
+    # After the file is closed
+    part['Content-Disposition'] = 'attachment; filename="%s"' % basename(file_name)
+    msg.attach(part)
+    server.sendmail("moshe.samson@mail.huji.ac.il", "samson.moshe@gmail.com", msg.as_string())
+    server.quit()
