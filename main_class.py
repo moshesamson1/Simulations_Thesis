@@ -490,13 +490,37 @@ def check_best_strategy(seed):
         print "(" + str(iteration) + ")" + " ir: " + str(ir) + ", io: " + str(io) + ", result: " + str(result)
 
 
+def compare_between_coverage_methods(s1, s2):
+    """
+    #type:(int,int)
+    :param s1: First Strategy
+    :param s2: Second Strategy
+    :return: Nothing, for now
+    """
+    b = Board(10, 10)
+    agent_1 = Agent("V", s1, 0, 0, board=b)
+    agent_2 = Agent("H", s2, 0, 0, board=b)
+    agent_3 = Agent("N", StrategyEnum.SemiCyclingFromFarthestCorner_OpponentAware, 0, 0, board=b, agent_o=agent_1)
+
+    g = Game(b, agent_1, agent_2)
+    g.run_game()
+    print(g.get_r_gain())
+    print(g.get_o_gain())
+
+    print(agent_1.steps)
+    print(agent_2.steps)
+    print(agent_3.steps)
+
+
+
 def main():
     # is_there_best_strategy_r_only_positions(averaging_size=50)
 
     # search_for_best_strategy()
     
-    check_best_strategy(seed=345)
-                
+    # check_best_strategy(seed=345)
+    compare_between_coverage_methods(StrategyEnum.VerticalCoverageCircular, StrategyEnum.HorizontalCoverageCircular)
+
 
 if __name__ == "__main__":
     main()
