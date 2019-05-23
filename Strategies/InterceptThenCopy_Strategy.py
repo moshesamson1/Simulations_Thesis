@@ -1,6 +1,7 @@
 from Entities import Strategy, Slot, StrategyEnum
 from abc import abstractmethod
 from math import *
+import numpy as np
 
 def get_interception_point(steps_o, InitPosX, InitPosY):
     ip_x = -1
@@ -20,7 +21,6 @@ def get_interception_point(steps_o, InitPosX, InitPosY):
 
 
 class InterceptThenCopy_Strategy(Strategy):
-    @abstractmethod
     def get_steps(self, agent_r, board_size = 50, agent_o = None):
         steps_o = Strategy.get_strategy_from_enum(agent_o.StrategyEnum).get_steps(agent_o, board_size, board_size)
 

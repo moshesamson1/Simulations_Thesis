@@ -132,7 +132,6 @@ class Game:
         steps_r = self._agentR.steps
         steps_o = self._agentO.steps
 
-
         if optimality:
             assert len(steps_o) == len(steps_r)
 
