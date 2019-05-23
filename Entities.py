@@ -220,8 +220,8 @@ class Strategy:
         :param board_size: the size of the given game board
         :return: the farthest corner from A
         """
-        f_row = 0 if a.row < board_size / 2 else board_size - 1
-        f_col = 0 if a.col < board_size / 2 else board_size - 1
+        f_row = 0 if a.row > board_size / 2 else board_size - 1
+        f_col = 0 if a.col > board_size / 2 else board_size - 1
         return Slot(f_row, f_col)
 
     @classmethod
