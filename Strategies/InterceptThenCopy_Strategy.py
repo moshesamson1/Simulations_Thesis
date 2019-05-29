@@ -10,14 +10,14 @@ def get_interception_point(steps_o, InitPosX, InitPosY):
     steps_counter = 0
     for step in steps_o:
         steps_counter += 1
-        distance_from_i_r = fabs(step[0] - InitPosX) + fabs(step[1] - InitPosY) + 1
+        distance_from_i_r = fabs(step.row - InitPosX) + fabs(step.col - InitPosY) + 1
         if fabs(steps_counter - distance_from_i_r) <= 1:
-            ip_x, ip_y = step
+            ip_x, ip_y = step.row, step.col
             break
 
     assert (ip_x != -1 and ip_y != -1)
 
-    return (ip_x, ip_y), fabs(ip_x - InitPosX) + fabs(ip_y - InitPosY)
+    return Slot(ip_x, ip_y), fabs(ip_x - InitPosX) + fabs(ip_y - InitPosY)
 
 
 class InterceptThenCopy_Strategy(Strategy):
@@ -34,18 +34,19 @@ class InterceptThenCopy_Strategy(Strategy):
 
         return steps_r
 
+
 def run_agent_over_board_interception_strategy(steps_o, i_r_x, i_r_y, interception_point):
-    distance2_interception_point = fabs(i_r_x - interception_point[0]) + fabs(i_r_y - interception_point[1])
-    next_slot = (i_r_x, i_r_y)
+    distance2_interception_point = fabs(i_r_x - interception_point.row) + fabs(i_r_y - interception_point.col)
+    next_slot = Slot(i_r_x, i_r_y)
     steps = [next_slot]
     counter = 0
 
-    if np.sign(interception_point[0] - i_r_x) >= 0:
+    if np.sign(interception_point.row - i_r_x) >= 0:
         x_sign = 1
     else:
         x_sign = -1
 
-    if np.sign(interception_point[1] - i_r_y) >= 0:
+    if np.sign(interception_point.col - i_r_y) >= 0:
         y_sign = 1
     else:
         y_sign = -1
@@ -56,13 +57,13 @@ def run_agent_over_board_interception_strategy(steps_o, i_r_x, i_r_y, intercepti
 
         # first, go to interception point
         if counter < distance2_interception_point:
-            for x_step in xrange(i_r_x + x_sign, interception_point[0] + x_sign, x_sign):
+            for x_step in range(i_r_x + x_sign, interception_point.row + x_sign, x_sign):
                 counter += 1
-                next_slot = (x_step, next_slot[1])
+                next_slot = Slot(x_step, next_slot.col)
                 steps.append(next_slot)
-            for y_step in xrange(i_r_y + y_sign, interception_point[1] + y_sign, y_sign):
+            for y_step in range(i_r_y + y_sign, interception_point.col + y_sign, y_sign):
                 counter += 1
-                next_slot = (next_slot[0], y_step)
+                next_slot = Slot(next_slot.row, y_step)
                 steps.append(next_slot)
         # then, play as O plays
         else:

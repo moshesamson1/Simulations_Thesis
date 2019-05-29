@@ -281,7 +281,6 @@ def get_heat_map_intersection_value(path_seed, i_o, i_r):
     return hm_value
 
 
-
 def compute_and_analyze_results_given_o_position(seeds_amount, i_o, _board_size, i_r, send_email):
     t0 = time.time()
     label = "Results/size{0}_Io={1}_Ir={2}_seeds:{3}".format(str(_board_size), str(i_o), str(i_r), str(seeds_amount))
@@ -473,11 +472,31 @@ def compare_between_coverage_methods(a_s1, a_s2, b_s):
 
     g13 = Game(b13, agent_1, agent_31)
     g13.run_game(enforce_paths_length=False)
-    print("Leader's Reward (%s): %d, Follower's Reward (%s): %d" % (a_s1.name, g13.get_r_gain(), b_s.name, g13.get_o_gain()))
+    print("Leader's Reward (%s): %d, Follower's Reward (%s): %d" % (a_s1.name, g13.get_r_gain(), b_s.name,
+                                                                    g13.get_o_gain()))
 
     g23 = Game(b23, agent_2, agent_32)
     g23.run_game(enforce_paths_length=False)
-    print("Leader's Reward (%s): %d, Follower's Reward (%s): %d" % (a_s2.name, g23.get_r_gain(), b_s.name, g23.get_o_gain()))
+    print("Leader's Reward (%s): %d, Follower's Reward (%s): %d" % (a_s2.name, g23.get_r_gain(), b_s.name,
+                                                                    g23.get_o_gain()))
+
+    # compute optimal results:
+    b1o = Board(100, 100)
+    agent_o1 = Agent("Op", StrategyEnum.FullKnowledgeInterceptionCircular, 0, 0, b1o, agent_1)
+    g1o = Game(b1o, agent_1, agent_o1)
+    g1o.run_game()
+    print("Leader's Reward (%s): %d, Follower's Reward (%s): %d" % (a_s1.name, g1o.get_r_gain(),
+                                                                    StrategyEnum.FullKnowledgeInterceptionCircular.name,
+                                                                    g1o.get_o_gain()))
+
+    # compute optimal results:
+    b1o = Board(100, 100)
+    agent_o1 = Agent("Op", StrategyEnum.FullKnowledgeInterceptionCircular, 0, 0, b1o, agent_1)
+    g1ob2 = Game(b1o, agent_2, agent_o1)
+    g1ob2.run_game()
+    print("Leader's Reward (%s): %d, Follower's Reward (%s), responding to other agent: %d" % (a_s1.name, g1ob2.get_r_gain(),
+                                                                    StrategyEnum.FullKnowledgeInterceptionCircular.name,
+                                                                    g1ob2.get_o_gain()))
 
 
 def main():

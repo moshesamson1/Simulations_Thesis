@@ -113,7 +113,8 @@ class StrategyEnum(Enum):
 
 
 class Agent:
-    def __init__(self, name, strategy_enum, x, y, board=None, agent_o=None):
+    def __init__(self, name: str, strategy_enum: StrategyEnum, x: int, y: int, board: Board = None,
+                 agent_o: object = None) -> None:
         # type: (str, StrategyEnum, int, int, Board, Agent) -> None
         assert isinstance(strategy_enum, Enum)
 
@@ -129,7 +130,7 @@ class Agent:
 
 class Game:
 
-    def __init__(self, board, agent_r, agent_o):
+    def __init__(self, board: Board, agent_r: Agent, agent_o: Agent) -> None:
         self._board = board
         self._agentR = agent_r
         self._agentO = agent_o
