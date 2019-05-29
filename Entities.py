@@ -114,7 +114,7 @@ class StrategyEnum(Enum):
 
 class Agent:
     def __init__(self, name, strategy_enum, x, y, board=None, agent_o=None):
-        # type: (str, int, int, int, Board, Agent) -> None
+        # type: (str, StrategyEnum, int, int, Board, Agent) -> None
         assert isinstance(strategy_enum, Enum)
 
         self.Name = name
