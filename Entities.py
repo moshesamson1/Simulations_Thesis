@@ -6,6 +6,7 @@ from email.mime.text import MIMEText
 from email.utils import COMMASPACE, formatdate
 from os.path import basename
 import smtplib
+from enum import Enum
 
 
 class Board:
@@ -97,19 +98,24 @@ class Slot:
         return str(self)
 
 
-class StrategyEnum:
-    def __init__(self):
-        pass
-
-    VerticalCoverageCircular, HorizontalCoverageCircular, FullKnowledgeInterceptionCircular, QuartersCoverageCircular,\
-        RandomSTC, VerticalCoverageNonCircular, SpiralingOut, SpiralingIn, VerticalFromFarthestCorner_OpponentAware,\
-        SemiCyclingFromFarthestCorner_OpponentAware, CircleOutsideFromIo = range(11)
+class StrategyEnum(Enum):
+    VerticalCoverageCircular = 0
+    HorizontalCoverageCircular = 1
+    FullKnowledgeInterceptionCircular = 2
+    QuartersCoverageCircular = 3
+    RandomSTC = 4
+    VerticalCoverageNonCircular = 5
+    SpiralingOut = 6
+    SpiralingIn = 7
+    VerticalFromFarthestCorner_OpponentAware = 8
+    SemiCyclingFromFarthestCorner_OpponentAware = 9
+    CircleOutsideFromIo = 10
 
 
 class Agent:
     def __init__(self, name, strategy_enum, x, y, board=None, agent_o=None):
         # type: (str, int, int, int, Board, Agent) -> None
-        assert isinstance(strategy_enum, int)
+        assert isinstance(strategy_enum, Enum)
 
         self.Name = name
         self.StrategyEnum = strategy_enum

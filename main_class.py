@@ -473,13 +473,11 @@ def compare_between_coverage_methods(a_s1, a_s2, b_s):
 
     g13 = Game(b13, agent_1, agent_31)
     g13.run_game(enforce_paths_length=False)
-    print("Leader's Reward: %d, Follower's Reward: " % g13.get_r_gain(), g13.get_o_gain())
+    print("Leader's Reward (%s): %d, Follower's Reward (%s): %d" % (a_s1.name, g13.get_r_gain(), b_s.name, g13.get_o_gain()))
 
     g23 = Game(b23, agent_2, agent_32)
     g23.run_game(enforce_paths_length=False)
-    # print "Leader's Reward (%s): %d, Follower's Reward (%s): " % g23.get_r_gain(), str(a_s2), g23.get_o_gain(), b_s
-
-
+    print("Leader's Reward (%s): %d, Follower's Reward (%s): %d" % (a_s2.name, g23.get_r_gain(), b_s.name, g23.get_o_gain()))
 
 
 def main():
