@@ -67,6 +67,6 @@ class CircleOutsideFromBoardCenter_Strategy(Strategy):
 
         for step in self.steps:
             if step.row > board_size-1 or step.col > board_size-1 or step.row < 0 or step.col < 0:
-                print "Error while circling outside from board center: reached unavailable position"
+                print("Error while circling outside from board center: reached unavailable position")
                 break
         return self.steps

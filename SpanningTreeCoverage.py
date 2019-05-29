@@ -1,40 +1,41 @@
-import networkx as nx
+# import networkx as nx
 from random import shuffle
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from math import floor
 import Entities
-import os
+# import os
 
 
 def print_graph(edges, i_o, figure_label=""):
-    plt.figure()
-    g = nx.DiGraph()
-    g.add_edges_from(edges)
-    positions = {}
-    color_map = []
-    for n in g.nodes():
-        positions[n] = (n.row, n.col)
-        if n == edges[0][0]:
-            color_map.append('green')
-        elif n == i_o:
-            color_map.append('blue')
-        else:
-            color_map.append('red')
-        # color_map.append('green' if n == edges[0][0] else 'red')
-
-    f = plt.figure()
-    nx.draw(G=g, pos=positions, node_size=20, font_size=8, node_color=color_map, ax=f.add_subplot(111))
-
-    if not os.path.exists(figure_label):
-        os.makedirs(figure_label)
-
-    f.savefig(figure_label + "/max_path.png", bbox_inches='tight')
-    plt.close('all')
-
-    # plt.axis([-1, 33, -1, 33], 'on')
-    # plt.grid(True)
-
-    plt.show()
+    print("Function is not available in this version!")
+    # plt.figure()
+    # g = nx.DiGraph()
+    # g.add_edges_from(edges)
+    # positions = {}
+    # color_map = []
+    # for n in g.nodes():
+    #     positions[n] = (n.row, n.col)
+    #     if n == edges[0][0]:
+    #         color_map.append('green')
+    #     elif n == i_o:
+    #         color_map.append('blue')
+    #     else:
+    #         color_map.append('red')
+    #     # color_map.append('green' if n == edges[0][0] else 'red')
+    #
+    # f = plt.figure()
+    # nx.draw(G=g, pos=positions, node_size=20, font_size=8, node_color=color_map, ax=f.add_subplot(111))
+    #
+    # if not os.path.exists(figure_label):
+    #     os.makedirs(figure_label)
+    #
+    # f.savefig(figure_label + "/max_path.png", bbox_inches='tight')
+    # plt.close('all')
+    #
+    # # plt.axis([-1, 33, -1, 33], 'on')
+    # # plt.grid(True)
+    #
+    # plt.show()
 
 
 def create_graph(edge_list):
@@ -93,7 +94,7 @@ def create_covering_path(mst_edges_shallow_graph, initial_slot):
     while True:
         counter += 1
         if counter > 100000:
-            print "ERROR! Probably hit infinite loop while creating the covering path"
+            print("ERROR! Probably hit infinite loop while creating the covering path")
             return
 
         covering_path.append(slot)
@@ -182,7 +183,7 @@ def create_covering_path(mst_edges_shallow_graph, initial_slot):
             elif slot.go_east() == last_slot:
                 slot = slot.go_west()
             else:
-                print "error 1"
+                print("error 1")
         elif ul_corner_in_mst and ur_corner_in_mst and not (bl_corner_in_mst or br_corner_in_mst):
             if slot.go_east() == last_slot or slot == initial_slot:
                 slot = slot.go_west()
@@ -220,7 +221,7 @@ def create_covering_path(mst_edges_shallow_graph, initial_slot):
             elif slot.go_west() == last_slot:
                 slot = slot.go_north()
         else:
-            print "error has occurred!"
+            print("error has occurred!")
 
         if slot == origin_slot:
             break
@@ -230,8 +231,8 @@ def create_covering_path(mst_edges_shallow_graph, initial_slot):
 
 def get_edges_for_full_graph(width, height):
     edges = []
-    for row in xrange(height):
-        for col in xrange(width):
+    for row in range(height):
+        for col in range(width):
             if row < height-1:
                 edges.append((Entities.Slot(row, col), Entities.Slot(row, col).go_south()))
             if col < width-1:
@@ -247,7 +248,7 @@ def get_random_coverage_strategy(size, i_r, i_o=None, print_mst=False, figure_la
     covering_path = create_covering_path(mst_edges_shallow_graph, i_r)
     if print_mst:
         covering_path_edges = []
-        for i in xrange(0, len(covering_path)-1):
+        for i in range(0, len(covering_path)-1):
             covering_path_edges.append((covering_path[i], covering_path[i+1]))
         print_graph(covering_path_edges, i_o, figure_label=figure_label)
     return covering_path
@@ -255,7 +256,7 @@ def get_random_coverage_strategy(size, i_r, i_o=None, print_mst=False, figure_la
 
 def display_path(covering_path):
     covering_path_edges = []
-    for i in xrange(0, len(covering_path) - 1):
+    for i in range(0, len(covering_path) - 1):
         covering_path_edges.append((covering_path[i], covering_path[i + 1]))
     print_graph(covering_path_edges, covering_path_edges[0][0])
 

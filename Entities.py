@@ -128,11 +128,11 @@ class Game:
         self._agentR = agent_r
         self._agentO = agent_o
 
-    def run_game(self, optimality=True):
+    def run_game(self, enforce_paths_length=True):
         steps_r = self._agentR.steps
         steps_o = self._agentO.steps
 
-        if optimality:
+        if enforce_paths_length:
             assert len(steps_o) == len(steps_r)
 
         for i in range(min(len(steps_r), len(steps_o))):
@@ -148,15 +148,13 @@ class Game:
                 self._board.Slots[int(step_o.row)][int(step_o.col)].has_been_visited = True
                 self._board.Slots[int(step_o.row)][int(step_o.col)].covered_by = self._agentO.Name
 
-
-
     def get_r_gain(self):
         cond_count = 0
 
         # print self._board.Slots
 
-        for i in xrange(0, self._board.Rows):
-            for j in xrange(0, self._board.Cols):
+        for i in range(0, self._board.Rows):
+            for j in range(0, self._board.Cols):
                 if self._board.Slots[i][j].covered_by == self._agentR.Name:
                     cond_count += 1
 
@@ -168,8 +166,8 @@ class Game:
         size_x = len(self._board.Slots)
         size_y = len(self._board.Slots[0])
 
-        for i in xrange(0, size_x):
-            for j in xrange(0, size_y):
+        for i in range(0, size_x):
+            for j in range(0, size_y):
                 if self._board.Slots[i][j].covered_by == self._agentO.Name:
                     cond_count += 1
 
@@ -178,6 +176,7 @@ class Game:
     @property
     def board(self):
         return self._board
+
 
 class Strategy:
     __metaclass__ = ABCMeta
@@ -227,7 +226,12 @@ class Strategy:
     @classmethod
     def get_strategy_from_enum(cls, strategy_enum):
         # type: (Strategy, int) -> Strategy
-        from Strategies import *
+        from Strategies import VerticalCircularCoverage_Strategy,HorizontalCircularCoverage_Strategy, InterceptThenCopy_Strategy,\
+            CoverByQuarters_Strategy,STC_Strategy,VerticalNonCircularCoverage_Strategy,CircleInsideFromCornerFarthestFromIo_Strategy, \
+            CircleOutsideFromBoardCenter_Strategy,VerticalCoverageFromCornerFarthestFromIo_Strategy,CircleOutsideFromCornerFarthestFromIo_Strategy, \
+            CircleOutsideFromIo_Strategy
+
+
         if strategy_enum == StrategyEnum.VerticalCoverageCircular:
             return VerticalCircularCoverage_Strategy.VerticalCircularCoverage_Strategy()
         elif strategy_enum == StrategyEnum.HorizontalCoverageCircular:

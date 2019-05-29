@@ -35,13 +35,13 @@ class CircleOutsideFromCornerFarthestFromIo_Strategy(Strategy):
         while counter <= board_size * board_size and distance < board_size:
             if start_vertical:
                 # going vertically
-                for _ in xrange(distance):
+                for _ in range(distance):
                     current_slot = current_slot.go_north() if v_dir == 'u' else current_slot.go_south()
                     self.steps.append(current_slot)
                     counter += 1
 
                 # going horizontally
-                for _ in xrange(distance):
+                for _ in range(distance):
                     current_slot = current_slot.go_west() if h_dir == 'l' else current_slot.go_east()
                     self.steps.append(current_slot)
                     counter += 1
@@ -54,13 +54,13 @@ class CircleOutsideFromCornerFarthestFromIo_Strategy(Strategy):
 
             else:
                 # going horizontally
-                for _ in xrange(distance):
+                for _ in range(distance):
                     current_slot = current_slot.go_west() if h_dir == 'l' else current_slot.go_east()
                     self.steps.append(current_slot)
                     counter += 1
 
                 # going vertically
-                for _ in xrange(distance):
+                for _ in range(distance):
                     current_slot = current_slot.go_north() if v_dir == 'u' else current_slot.go_south()
                     self.steps.append(current_slot)
                     counter += 1

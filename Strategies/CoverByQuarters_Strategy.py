@@ -18,8 +18,8 @@ class CoverByQuarters_Strategy(Strategy):
             counter += 1
 
             if counter > 100000:
-                print "Something is wrong, counter is too big!"
-                print steps
+                print("Something is wrong, counter is too big!")
+                print(steps)
                 break
 
             if counter > 1 and (next_slot.row, next_slot.col) == (agent_r.InitPosX, agent_r.InitPosY):
@@ -47,7 +47,7 @@ class CoverByQuarters_Strategy(Strategy):
                 elif next_slot.row % 2 != 0 and next_slot.row == board_size / 2 - 1:  # An odd line, last line
                     next_slot.row, next_slot.col = next_slot.go_east() if next_slot.col % 2 != 0 else next_slot.go_north()
                 else:
-                    print "TL: Error occurred! Should not reach here!"
+                    print("TL: Error occurred! Should not reach here!")
                 continue
 
             # TR Quarter
@@ -63,7 +63,7 @@ class CoverByQuarters_Strategy(Strategy):
                         next_slot.go_east()
                     continue
                 else:
-                    print "TR: Error occurred! Should not reach here!"
+                    print("TR: Error occurred! Should not reach here!")
                 continue
 
             # BL Quarter
@@ -80,7 +80,7 @@ class CoverByQuarters_Strategy(Strategy):
                         next_slot.go_west()
                     continue
                 else:
-                    print "BL: Error occurred! Should not reach here!"
+                    print("BL: Error occurred! Should not reach here!")
                 continue
 
             # BR Quarter
@@ -107,7 +107,7 @@ class CoverByQuarters_Strategy(Strategy):
                     next_slot.row, next_slot.col = next_slot.go_west() if next_slot.col % 2 == 0 else next_slot.go_south()
                     continue
                 else:
-                    print "BR: Error occurred! Should not reach here!"
+                    print("BR: Error occurred! Should not reach here!")
                 continue
 
         return steps

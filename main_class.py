@@ -6,12 +6,10 @@ import multiprocessing
 import numpy as np
 import SpanningTreeCoverage
 import operator
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import itertools
-import pylab
+# import pylab
 import os
-
-
 import time
 
 
@@ -28,18 +26,18 @@ def get_average_gain_no_information_job(board_size_x, board_size_y, seed_code):
     b = Board(board_size_x, board_size_y)
 
     agent_r = Agent("R", StrategyEnum.RandomSTC, randint(0, board_size_x - 1), randint(0, board_size_y - 1), board=b)
-    print str(agent_r.InitPosX) + "," + str(agent_r.InitPosY)
+    print(str(agent_r.InitPosX) + "," + str(agent_r.InitPosY))
     # add again randomness to the system
     rnd.seed(rnd.Random().random())
 
     agent_o = Agent("O", StrategyEnum.RandomSTC, randint(0, board_size_x - 1), randint(0, board_size_y - 1), board=b)
-    print str(agent_o.InitPosX) + "," + str(agent_o.InitPosY)
+    print(str(agent_o.InitPosX) + "," + str(agent_o.InitPosY))
     game = Game(b, agent_r, agent_o)
     game.run_game()
     gain = game.get_r_gain()
 
     if not (gain + game.get_o_gain() == board_size_x * board_size_y):
-        print "Error: gains are wrong!"
+        print("Error: gains are wrong!")
     return gain
 
 
@@ -77,14 +75,14 @@ def get_average_gain_full_information_job(board_size_x, board_size_y):
 def get_average_gain_full_information(iterations, board_size_x, board_size_y):
     num_cores = multiprocessing.cpu_count()
     gains = Parallel(n_jobs=num_cores - 1)(
-        delayed(get_average_gain_full_information_job)(board_size_x, board_size_y) for i in xrange(0, iterations))
+        delayed(get_average_gain_full_information_job)(board_size_x, board_size_y) for i in range(0, iterations))
     return np.mean(gains)
 
 
 def get_average_gain_no_information(iterations, board_size_x, board_size_y):
     num_cores = multiprocessing.cpu_count()
     gains = Parallel(n_jobs=num_cores - 1)(
-        delayed(get_average_gain_no_information_job)(board_size_x, board_size_y, 1) for i in xrange(0, iterations))
+        delayed(get_average_gain_no_information_job)(board_size_x, board_size_y, 1) for i in range(0, iterations))
     return np.mean(gains)
 
 
@@ -122,7 +120,7 @@ def get_mean_gain_set__sr__ir__so_random__io_job(agent_r, i_o, b):
 def get_mean_gain_set__sr__ir_random__so__io(iterations, board_size, agent_r, b):
     num_cores = multiprocessing.cpu_count()
     gains = Parallel(n_jobs=num_cores - 1)(
-        delayed(get_mean_gain_set__sr__ir_random__so__io_job)(board_size, agent_r, b) for i in xrange(0, iterations))
+        delayed(get_mean_gain_set__sr__ir_random__so__io_job)(board_size, agent_r, b) for i in range(0, iterations))
     return np.mean(gains)
 
 
@@ -130,12 +128,12 @@ def get_mean_gain_set__sr__ir__so_random__io(board_size, agent_r, b):
     # Using parallelism: works incorrectly with using random functions!
     # num_cores = multiprocessing.cpu_count()
     # gains = Parallel(n_jobs=num_cores - 1)(
-    # delayed(get_mean_gain_set_Sr_Ir_So_random_Io_job)(agent_r, Slot(i,j), b) for i in xrange(0, board_size)
-    # for j in xrange(0,board_size))
+    # delayed(get_mean_gain_set_Sr_Ir_So_random_Io_job)(agent_r, Slot(i,j), b) for i in range(0, board_size)
+    # for j in range(0,board_size))
 
     gains = []
-    for i in xrange(0, board_size):
-        for j in xrange(0, board_size):
+    for i in range(0, board_size):
+        for j in range(0, board_size):
             #
             gains.append(get_mean_gain_set__sr__ir__so_random__io_job(agent_r, Slot(i, j), b))
     # print gains
@@ -155,9 +153,9 @@ def compute_expected_profits_for__sr_set__ir_random__so__io(iterations, board_si
 
         set_r_gain = get_mean_gain_set__sr__ir_random__so__io(iterations, board_size, agent_r, b)
         mean_gains[seed_code] = set_r_gain
-        print "seed_code: " + str(seed_code) + ", value: " + str(set_r_gain)
+        print("seed_code: " + str(seed_code) + ", value: " + str(set_r_gain))
 
-    print mean_gains
+    print(mean_gains)
 
     rnd.seed(max(enumerate(mean_gains))[0])
 
@@ -177,8 +175,8 @@ def compute_expected_profits_given_o(board_size, seeds_count_o, given_io, given_
     :type seeds_count_o: int
     :type seeds_count_r: int
     """
-    s_r_seeds = rnd.sample(xrange(1, 1000000000), seeds_count_r) if r_base_seed == -1 else [r_base_seed]
-    s_o_seeds = rnd.sample(xrange(1, 1000000000), seeds_count_o)
+    s_r_seeds = rnd.sample(range(1, 1000000000), seeds_count_r) if r_base_seed == -1 else [r_base_seed]
+    s_o_seeds = rnd.sample(range(1, 1000000000), seeds_count_o)
 
     # save max r_code to print in the end
     max_val = (-1, -1)
@@ -209,9 +207,9 @@ def compute_expected_profits_given_o(board_size, seeds_count_o, given_io, given_
     SpanningTreeCoverage.get_random_coverage_strategy(board_size, Slot(given_ir[0], given_ir[1]),
                                                       Slot(given_io[0], given_io[1]),
                                                       print_mst=True, figure_label=figure_label)
-    for i in xrange(len(s_r_seeds)):
-        print "(seed, value, distance): {0} {1} {2}".format(str(s_r_seeds[i]), str(values[i]), str(
-            np.fabs(given_ir[0] - given_io[0]) + np.fabs(given_ir[1] - given_io[1])))
+    for i in range(len(s_r_seeds)):
+        print("(seed, value, distance): {0} {1} {2}".format(str(s_r_seeds[i]), str(values[i]), str(
+            np.fabs(given_ir[0] - given_io[0]) + np.fabs(given_ir[1] - given_io[1]))))
 
     return s_r_seeds, values, max_val
 
@@ -229,10 +227,10 @@ def compute_expected_profits_for__sr_set__ir__so_random__io(board_size, seeds_co
 
         set_r_gain = get_mean_gain_set__sr__ir__so_random__io(board_size, agent_r, b)
         mean_gains[seed_code] = set_r_gain
-        print "seed_code: {0}, value: {1}".format(str(seed_code), str(set_r_gain))
+        print("seed_code: {0}, value: {1}".format(str(seed_code), str(set_r_gain)))
 
     max_seed = max(mean_gains.iteritems(), key=operator.itemgetter(1))[0]
-    print "max_seed : " + str(max_seed)
+    print("max_seed : " + str(max_seed))
     rnd.seed(max_seed)
     agent_r = Agent("R", StrategyEnum.RandomSTC, int(board_size / 2), int(board_size / 2), board=b)
     SpanningTreeCoverage.get_random_coverage_strategy(board_size, Slot(agent_r.InitPosX, agent_r.InitPosY), True)
@@ -248,7 +246,7 @@ def get_turns_amount(path_seed):
     rnd.seed(path_seed)
     path = SpanningTreeCoverage.get_random_coverage_strategy(32, Slot(31, 31))
     turns = 0
-    for i in xrange(len(path) - 2):
+    for i in range(len(path) - 2):
         p1 = path[i]
         p2 = path[i + 1]
         p3 = path[i + 2]
@@ -273,7 +271,7 @@ def get_heat_map_intersection_value(path_seed, i_o, i_r):
     rnd.seed(path_seed)
     path = SpanningTreeCoverage.get_random_coverage_strategy(32, Slot(i_r.row, i_r.col))
     hm_value = 0
-    for time_t in xrange(len(path)):
+    for time_t in range(len(path)):
         p_t = path[time_t]
         euclidean_dist = np.fabs(p_t.row - i_o.row) + np.fabs(p_t.col - i_o.col)
         if euclidean_dist > time_t:
@@ -281,37 +279,6 @@ def get_heat_map_intersection_value(path_seed, i_o, i_r):
         else:
             hm_value += np.power(1.1, time_t - euclidean_dist)
     return hm_value
-
-
-def analyze_results(seeds, values, i_o, i_r, figure_label=""):
-    f, ax = plt.subplots(1)
-
-    # turns_values = [get_turns_amount(v) for v in seeds]
-    # norm_turns_values = [float(i) / max(turns_values) for i in turns_values]
-    # for t in norm_turns_values:
-    #     print t
-    # plt.plot(values, norm_turns_values, 'ro')
-
-    hm_values = [get_heat_map_intersection_value(v, i_o, i_r) for v in seeds]
-    # norm_hm_values = [float(i) / max(hm_values) for i in hm_values]
-    ax.plot(values, hm_values, 'bo')
-
-    # compute and show regression line
-    if len(hm_values) > 3:
-        m, b = pylab.polyfit(values, hm_values, 1)
-        yp = pylab.polyval([m, b], values)
-        ax.plot(values, yp, 'r')
-    plt.grid('on')
-
-    # display axis titles
-    plt.xlabel('Average FCC')
-    plt.ylabel('Heat-Map Value')
-
-    if not os.path.exists(figure_label):
-        os.makedirs(figure_label)
-
-    f.savefig(figure_label + '/fcc_hmValues_graph.png', bbox_inches='tight')
-    plt.close('all')
 
 
 
@@ -323,7 +290,6 @@ def compute_and_analyze_results_given_o_position(seeds_amount, i_o, _board_size,
                                                               r_strategy=StrategyEnum.RandomSTC,
                                                               seeds_count_r=1, r_base_seed=10)
 
-    analyze_results(seeds, values, i_o=Slot(i_o[0], i_o[1]), i_r=Slot(i_r[0], i_r[1]), figure_label=label)
     t1 = time.time()
     # print "elapsed: " + str(t1 - t0)
 
@@ -357,7 +323,7 @@ def is_there_best_strategy_r_only_positions(averaging_size = 100):
         rnd.seed(seed)
 
         # randomly select two different initial positions
-        poss_positions = list(itertools.product(xrange(0, board_size - 1), xrange(0, board_size - 1)))
+        poss_positions = list(itertools.product(range(0, board_size - 1), range(0, board_size - 1)))
         ir, io = rnd.sample(poss_positions, 2)
 
         board = Board(board_size, board_size)
@@ -375,8 +341,8 @@ def is_there_best_strategy_r_only_positions(averaging_size = 100):
         smart_semi_circle_sum = 0
         smart_cycle_out_io_sum = 0
 
-        for i in xrange(averaging_size):
-            print "iteration: " + str(i) + " in round " + str(counter_rows)
+        for i in range(averaging_size):
+            print("iteration: " + str(i) + " in round " + str(counter_rows))
             agent_o = Agent("O", StrategyEnum.RandomSTC, io[0], io[1], board=board)
 
             # smart R agents
@@ -393,23 +359,23 @@ def is_there_best_strategy_r_only_positions(averaging_size = 100):
             random_sum += game.get_r_gain()
 
             game = Game(Board(board.Rows, board.Cols), agent_r_spiraling_in, agent_o)
-            game.run_game(optimality=False)
+            game.run_game(enforce_paths_length=False)
             spiraling_in_sum += game.get_r_gain()
 
             game = Game(Board(board.Rows, board.Cols), agent_r_spiraling_out, agent_o)
-            game.run_game(optimality=False)
+            game.run_game(enforce_paths_length=False)
             spiraling_out_sum += game.get_r_gain()
 
             game = Game(Board(board.Rows, board.Cols), agent_r_vertical_far, agent_o)
-            game.run_game(optimality=False)
+            game.run_game(enforce_paths_length=False)
             smart_vertical_sum += game.get_r_gain()
 
             game = Game(Board(board.Rows, board.Cols), agent_r=agent_r_semi_circle, agent_o=agent_o)
-            game.run_game(optimality=False)
+            game.run_game(enforce_paths_length=False)
             smart_semi_circle_sum += game.get_r_gain()
 
             game = Game(Board(board.Rows, board.Cols), agent_r=agent_r_cycle_outside_io, agent_o=agent_o)
-            game.run_game(optimality=False)
+            game.run_game(enforce_paths_length=False)
             smart_cycle_out_io_sum += game.get_r_gain()
 
         # print averaged data
@@ -440,12 +406,12 @@ def search_for_best_strategy():
     board_size = 50
     data_file = open("data.csv", 'a')
 
-    for seed in xrange(1000):
+    for seed in range(1000):
         # seed indicates the seed. For that specific seed, average over X iterations, and return the expected value,
         # when for all iterations, io starts at the same position, and create strategy randomly
 
         # randomly select two different initial positions
-        poss_positions = list(itertools.product(xrange(0, board_size - 1), xrange(0, board_size - 1)))
+        poss_positions = list(itertools.product(range(0, board_size - 1), range(0, board_size - 1)))
         ir, io = rnd.sample(poss_positions, 2)
 
         board = Board(board_size, board_size)
@@ -453,14 +419,14 @@ def search_for_best_strategy():
         rnd.seed(seed)
         agent_r_random = Agent("R", StrategyEnum.RandomSTC, ir[0], ir[1], board=board)
         random_sum = 0
-        for j in xrange(100):
+        for j in range(100):
             agent_o = Agent("O", StrategyEnum.RandomSTC, io[0], io[1], board=board)
             game = Game(Board(board.Rows, board.Cols), agent_r_random, agent_o)
             game.run_game()
             random_sum += game.get_r_gain()
         result = random_sum / 100.0
 
-        print "seed: " + str(seed) + " -> " + str(result)
+        print("seed: " + str(seed) + " -> " + str(result))
         data_file.write(",".join([str(seed), str(result)]))
         data_file.write("\n")
     data_file.close()
@@ -470,9 +436,9 @@ def check_best_strategy(seed):
     board_size = 50
     data_file = open("data.csv", 'a')
 
-    for iteration in xrange(500):
+    for iteration in range(500):
         # randomly select two different initial positions
-        poss_positions = list(itertools.product(xrange(0, board_size - 1), xrange(0, board_size - 1)))
+        poss_positions = list(itertools.product(range(0, board_size - 1), range(0, board_size - 1)))
         ir, io = rnd.sample(poss_positions, 2)
         board = Board(board_size, board_size)
 
@@ -480,46 +446,46 @@ def check_best_strategy(seed):
         agent_r_random = Agent("R", StrategyEnum.RandomSTC, ir[0], ir[1], board=board)
         random_sum = 0
 
-        for _ in xrange(100):
+        for _ in range(100):
             agent_o = Agent("O", StrategyEnum.RandomSTC, io[0], io[1], board=board)
             game = Game(Board(board.Rows, board.Cols), agent_r_random, agent_o)
             game.run_game()
             random_sum += game.get_r_gain()
 
         result = random_sum / 100.0
-        print "(" + str(iteration) + ")" + " ir: " + str(ir) + ", io: " + str(io) + ", result: " + str(result)
+        print("(" + str(iteration) + ")" + " ir: " + str(ir) + ", io: " + str(io) + ", result: " + str(result))
 
 
-def compare_between_coverage_methods(s1, s2):
+def compare_between_coverage_methods(a_s1, a_s2, b_s):
     """
     #type:(int,int)
-    :param s1: First Strategy
-    :param s2: Second Strategy
+    :param a_s1: First Strategy
+    :param a_s2: Second Strategy
+    :param b_s: Second Strategy
     :return: Nothing, for now
     """
-    b = Board(10, 10)
-    agent_1 = Agent("V", s1, 0, 0, board=b)
-    agent_2 = Agent("H", s2, 0, 0, board=b)
-    agent_3 = Agent("N", StrategyEnum.SemiCyclingFromFarthestCorner_OpponentAware, 0, 0, board=b, agent_o=agent_1)
+    b13 = Board(100, 100)
+    b23 = Board(100, 100)
+    agent_1 = Agent("V", a_s1, 0, 0, board=b13)
+    agent_2 = Agent("H", a_s2, 0, 0, board=b13)
+    agent_31 = Agent("N", b_s, 0, 0, board=b13, agent_o=agent_1)
+    agent_32 = Agent("N", b_s, 0, 0, board=b23, agent_o=agent_2)
 
-    g = Game(b, agent_1, agent_2)
-    g.run_game()
-    print(g.get_r_gain())
-    print(g.get_o_gain())
+    g13 = Game(b13, agent_1, agent_31)
+    g13.run_game(enforce_paths_length=False)
+    print("Leader's Reward: %d, Follower's Reward: " % g13.get_r_gain(), g13.get_o_gain())
 
-    print(agent_1.steps)
-    print(agent_2.steps)
-    print(agent_3.steps)
+    g23 = Game(b23, agent_2, agent_32)
+    g23.run_game(enforce_paths_length=False)
+    # print "Leader's Reward (%s): %d, Follower's Reward (%s): " % g23.get_r_gain(), str(a_s2), g23.get_o_gain(), b_s
+
 
 
 
 def main():
-    # is_there_best_strategy_r_only_positions(averaging_size=50)
-
-    # search_for_best_strategy()
-    
-    # check_best_strategy(seed=345)
-    compare_between_coverage_methods(StrategyEnum.VerticalCoverageCircular, StrategyEnum.HorizontalCoverageCircular)
+    compare_between_coverage_methods(StrategyEnum.VerticalCoverageCircular,
+                                     StrategyEnum.HorizontalCoverageCircular,
+                                     StrategyEnum.SemiCyclingFromFarthestCorner_OpponentAware)
 
 
 if __name__ == "__main__":

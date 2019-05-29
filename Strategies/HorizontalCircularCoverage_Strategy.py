@@ -45,7 +45,7 @@ class HorizontalCircularCoverage_Strategy(Strategy):
                 else:
                     next_slot = next_slot.go_south()
                     if next_slot.row > board_size - 1:
-                        print "+1"
+                        print("+1")
 
             if next_slot == Slot(agent_r.InitPosX, agent_r.InitPosY):
                 break
