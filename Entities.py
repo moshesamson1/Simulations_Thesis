@@ -7,6 +7,10 @@ from email.utils import COMMASPACE, formatdate
 from os.path import basename
 import smtplib
 from enum import Enum
+import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+from textwrap import wrap
 
 
 class Board:
@@ -133,6 +137,26 @@ class Agent:
     def get_strategy(self):
         return self.Strategy
 
+    def display_heat_map(self,x,y):
+        arr = self.get_heatmap()
+        DisplayingClass.create_heat_map(arr,x,y, self.get_strategy())
+
+    def get_heatmap(self):
+        arr = np.zeros((self.gameBoard.Rows, self.gameBoard.Cols))
+        for id in range(len(self.steps)):
+            arr[self.steps[id].row][self.steps[id].col] = id
+        return arr
+
+    def get_cross_heatmap(self, other):
+        my_hm = self.get_heatmap()
+        o_hm = other.get_heatmap()
+        return np.add(my_hm, o_hm)
+
+    def display_cross_heatmap(self, other, x, y):
+        c = self.get_cross_heatmap(other)
+        DisplayingClass.create_heat_map(c, x, y, "HeatMap Combination of \n({0} and \n{1}):".format(str(self.get_strategy()), str(other.get_strategy())))
+
+
 
 class Game:
     def __init__(self, board: Board, agent_r: Agent, agent_o: Agent) -> None:
@@ -192,10 +216,13 @@ class Game:
 
 class Strategy:
     __metaclass__ = ABCMeta
-    steps = None  # type: List[Any]
+    steps = None  # type: List[Slot]
 
     def __init__(self):
         self.steps = []
+
+    def __str__(self):
+        return self.__class__.__name__
 
     @classmethod
     @abstractmethod
@@ -268,6 +295,7 @@ class Strategy:
             return CircleOutsideFromIo_Strategy.CircleOutsideFromIo_Strategy()
 
 
+
 def send_files_via_email(text, title, file_name):
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.starttls()
@@ -293,5 +321,27 @@ def send_files_via_email(text, title, file_name):
     msg.attach(part)
     server.sendmail("moshe.samson@mail.huji.ac.il", "samson.moshe@gmail.com", msg.as_string())
     server.quit()
+
+
+class DisplayingClass:
+    fig, ax = plt.subplots(3, 3)
+
+    @staticmethod
+    def get_plt():
+        return plt
+
+    @staticmethod
+    def create_heat_map(arr, x,y, title=''):
+        # arr = np.array(array)
+
+        im = DisplayingClass.ax[x][y].imshow(arr)
+        DisplayingClass.ax[x][y].set_title(title)
+        DisplayingClass.fig.tight_layout()
+
+        # Create colorbar
+        # cbar = DisplayingClass.ax[x][y].figure.colorbar(im, ax=DisplayingClass.ax[x][y])
+        # cbar.ax.set_ylabel("color bar label", rotation=-90, va="bottom")
+
+        return plt
 
 

@@ -1,4 +1,4 @@
-from Entities import Board, StrategyEnum, Agent, Slot, Game, send_files_via_email
+from Entities import Board, StrategyEnum, Agent, Slot, Game, send_files_via_email, DisplayingClass
 from random import randint
 import random as rnd
 from joblib import Parallel, delayed
@@ -491,15 +491,36 @@ def compare_between_coverage_methods(leader_s1: StrategyEnum, leader_s2: Strateg
 
     # compute optimal results:
     b2o = Board(100, 100)
-    agent_o1 = Agent("Op", StrategyEnum.FullKnowledgeInterceptionCircular, 0, 0, b2o, leader_s1_agent)
-    g1ob2 = Game(b2o, leader_s2_agent, agent_o1)
+    agent_o2 = Agent("Op", StrategyEnum.FullKnowledgeInterceptionCircular, 0, 0, b2o, leader_s1_agent)
+    g1ob2 = Game(b2o, leader_s2_agent, agent_o2)
     g1ob2.run_game()
     print("Leader's Reward (%s): %d, Follower's Reward (%s against %s): %d" %
           (leader_s1.name, g1ob2.get_r_gain(), StrategyEnum.FullKnowledgeInterceptionCircular.name, leader_s2.name,
            g1ob2.get_o_gain()))
 
-    # compute interception point's coverage-time, in each of the leader' strategies and the averaged one
-    # leader_s1_agent.get_interception_time_of_slot(leader_s1_agent.get_strategy().get_farthest_corner(leader_s1_agent))
+    # display heat maps
+    leader_s1_agent.display_heat_map(0,0)
+    follower_s_responding_s1_agent.display_heat_map(0,1)
+    follower_s_responding_s1_agent.display_cross_heatmap(leader_s1_agent,0,2)
+
+    leader_s2_agent.display_heat_map(1,0)
+    follower_s_responding_s2_agent.display_heat_map(1,1)
+    follower_s_responding_s2_agent.display_cross_heatmap(leader_s2_agent, 1, 2)
+
+    leader_s1_agent.display_heat_map(2,0)
+    leader_s2_agent.display_heat_map(2,1)
+    leader_s1_agent.display_cross_heatmap(leader_s2_agent,2,2)
+
+    # leader_s1_agent.display_heat_map(3, 0)
+    # agent_o1.display_heat_map(3,1)
+    # agent_o1.display_cross_heatmap(leader_s1_agent, 3, 2)
+
+    # leader_s2_agent.display_heat_map(3, 0)
+    # agent_o2.display_heat_map(3, 1)
+    # agent_o2.display_cross_heatmap(leader_s2_agent, 3, 2)
+
+    DisplayingClass.get_plt().show()
+
 
 def main():
     compare_between_coverage_methods(StrategyEnum.VerticalCoverageCircular,
