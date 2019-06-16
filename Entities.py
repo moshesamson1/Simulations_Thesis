@@ -10,7 +10,6 @@ from enum import Enum
 
 
 class Board:
-
     def __init__(self, rows, cols):
         self.Rows = rows
         self.Cols = cols
@@ -127,9 +126,15 @@ class Agent:
         self.Strategy = Strategy.get_strategy_from_enum(strategy_enum)
         self.steps = self.Strategy.get_steps(self, len(board.Slots), agent_o)
 
+    def get_interception_time_of_slot(self, slot: Slot):
+        assert len(self.steps) >= 0
+        return self.steps.index(slot)
+
+    def get_strategy(self):
+        return self.Strategy
+
 
 class Game:
-
     def __init__(self, board: Board, agent_r: Agent, agent_o: Agent) -> None:
         self._board = board
         self._agentR = agent_r
@@ -188,6 +193,7 @@ class Game:
 class Strategy:
     __metaclass__ = ABCMeta
     steps = None  # type: List[Any]
+
     def __init__(self):
         self.steps = []
 
@@ -237,7 +243,6 @@ class Strategy:
             CoverByQuarters_Strategy,STC_Strategy,VerticalNonCircularCoverage_Strategy,CircleInsideFromCornerFarthestFromIo_Strategy, \
             CircleOutsideFromBoardCenter_Strategy,VerticalCoverageFromCornerFarthestFromIo_Strategy,CircleOutsideFromCornerFarthestFromIo_Strategy, \
             CircleOutsideFromIo_Strategy
-
 
         if strategy_enum == StrategyEnum.VerticalCoverageCircular:
             return VerticalCircularCoverage_Strategy.VerticalCircularCoverage_Strategy()

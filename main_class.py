@@ -455,49 +455,51 @@ def check_best_strategy(seed):
         print("(" + str(iteration) + ")" + " ir: " + str(ir) + ", io: " + str(io) + ", result: " + str(result))
 
 
-def compare_between_coverage_methods(a_s1, a_s2, b_s):
+def compare_between_coverage_methods(leader_s1: StrategyEnum, leader_s2: StrategyEnum, follower_s: StrategyEnum) -> None:
     """
     #type:(int,int)
-    :param a_s1: First Strategy
-    :param a_s2: Second Strategy
-    :param b_s: Second Strategy
+    :param leader_s1: First Strategy
+    :param leader_s2: Second Strategy
+    :param follower_s: Second Strategy
     :return: Nothing, for now
     """
     b13 = Board(100, 100)
     b23 = Board(100, 100)
-    agent_1 = Agent("V", a_s1, 0, 0, board=b13)
-    agent_2 = Agent("H", a_s2, 0, 0, board=b13)
-    agent_31 = Agent("N", b_s, 0, 0, board=b13, agent_o=agent_1)
-    agent_32 = Agent("N", b_s, 0, 0, board=b23, agent_o=agent_2)
+    leader_s1_agent = Agent("V", leader_s1, 0, 0, board=b13)
+    leader_s2_agent = Agent("H", leader_s2, 0, 0, board=b13)
+    follower_s_responding_s1_agent = Agent("N", follower_s, 0, 0, board=b13, agent_o=leader_s1_agent)
+    follower_s_responding_s2_agent = Agent("N", follower_s, 0, 0, board=b23, agent_o=leader_s2_agent)
 
-    g13 = Game(b13, agent_1, agent_31)
+    g13 = Game(b13, leader_s1_agent, follower_s_responding_s1_agent)
     g13.run_game(enforce_paths_length=False)
-    print("Leader's Reward (%s): %d, Follower's Reward (%s): %d" % (a_s1.name, g13.get_r_gain(), b_s.name,
+    print("Leader's Reward (%s): %d, Follower's Reward (%s): %d" % (leader_s1.name, g13.get_r_gain(), follower_s.name,
                                                                     g13.get_o_gain()))
 
-    g23 = Game(b23, agent_2, agent_32)
+    g23 = Game(b23, leader_s2_agent, follower_s_responding_s2_agent)
     g23.run_game(enforce_paths_length=False)
-    print("Leader's Reward (%s): %d, Follower's Reward (%s): %d" % (a_s2.name, g23.get_r_gain(), b_s.name,
+    print("Leader's Reward (%s): %d, Follower's Reward (%s): %d" % (leader_s2.name, g23.get_r_gain(), follower_s.name,
                                                                     g23.get_o_gain()))
 
     # compute optimal results:
     b1o = Board(100, 100)
-    agent_o1 = Agent("Op", StrategyEnum.FullKnowledgeInterceptionCircular, 0, 0, b1o, agent_1)
-    g1o = Game(b1o, agent_1, agent_o1)
+    agent_o1 = Agent("Op", StrategyEnum.FullKnowledgeInterceptionCircular, 0, 0, b1o, leader_s1_agent)
+    g1o = Game(b1o, leader_s1_agent, agent_o1)
     g1o.run_game()
-    print("Leader's Reward (%s): %d, Follower's Reward (%s): %d" % (a_s1.name, g1o.get_r_gain(),
-                                                                    StrategyEnum.FullKnowledgeInterceptionCircular.name,
-                                                                    g1o.get_o_gain()))
+    print("Leader's Reward (%s): %d, Follower's Reward (%s against %s): %d"
+          % (leader_s1.name, g1o.get_r_gain(), StrategyEnum.FullKnowledgeInterceptionCircular.name, leader_s1.name,
+             g1o.get_o_gain()))
 
     # compute optimal results:
-    b1o = Board(100, 100)
-    agent_o1 = Agent("Op", StrategyEnum.FullKnowledgeInterceptionCircular, 0, 0, b1o, agent_1)
-    g1ob2 = Game(b1o, agent_2, agent_o1)
+    b2o = Board(100, 100)
+    agent_o1 = Agent("Op", StrategyEnum.FullKnowledgeInterceptionCircular, 0, 0, b2o, leader_s1_agent)
+    g1ob2 = Game(b2o, leader_s2_agent, agent_o1)
     g1ob2.run_game()
-    print("Leader's Reward (%s): %d, Follower's Reward (%s), responding to other agent: %d" % (a_s1.name, g1ob2.get_r_gain(),
-                                                                    StrategyEnum.FullKnowledgeInterceptionCircular.name,
-                                                                    g1ob2.get_o_gain()))
+    print("Leader's Reward (%s): %d, Follower's Reward (%s against %s): %d" %
+          (leader_s1.name, g1ob2.get_r_gain(), StrategyEnum.FullKnowledgeInterceptionCircular.name, leader_s2.name,
+           g1ob2.get_o_gain()))
 
+    # compute interception point's coverage-time, in each of the leader' strategies and the averaged one
+    # leader_s1_agent.get_interception_time_of_slot(leader_s1_agent.get_strategy().get_farthest_corner(leader_s1_agent))
 
 def main():
     compare_between_coverage_methods(StrategyEnum.VerticalCoverageCircular,
