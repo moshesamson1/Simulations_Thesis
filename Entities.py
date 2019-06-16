@@ -271,7 +271,8 @@ class Strategy:
 def send_files_via_email(text, title, file_name):
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.starttls()
-    server.login("moshe.samson@mail.huji.ac.il", "moshe_samson770")
+    password = input("Password for moshe.samson@mail.huji.ac.il: ")
+    server.login("moshe.samson@mail.huji.ac.il", password)
 
     msg = MIMEMultipart()
     msg['From'] = "moshe.samson@mail.huji.ac.il"
@@ -292,3 +293,5 @@ def send_files_via_email(text, title, file_name):
     msg.attach(part)
     server.sendmail("moshe.samson@mail.huji.ac.il", "samson.moshe@gmail.com", msg.as_string())
     server.quit()
+
+
