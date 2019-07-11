@@ -112,14 +112,15 @@ class StrategyEnum(Enum):
     SpiralingIn = 7
     VerticalFromFarthestCorner_OpponentAware = 8
     SemiCyclingFromFarthestCorner_OpponentAware = 9
-    SemiCyclingFromAdjacentCorner_OpponentAware = 10
-    CircleOutsideFromIo = 11
+    SemiCyclingFromAdjacentCorner_row_OpponentAware = 10
+    SemiCyclingFromAdjacentCorner_col_OpponentAware = 11
+    CircleOutsideFromIo = 12
 
 
 class Agent:
     def __init__(self, name: str, strategy_enum: StrategyEnum, x: int, y: int, board: Board = None,
                  agent_o: object = None) -> None:
-        # type: (str, StrategyEnum, int, int, Board, Agent) -> None
+
         assert isinstance(strategy_enum, Enum)
 
         self.Name = name
@@ -160,8 +161,8 @@ class Agent:
 
 
 class Game:
-    def __init__(self, board: Board, agent_r: Agent, agent_o: Agent) -> None:
-        self._board = board
+    def __init__(self, agent_r: Agent, agent_o: Agent, size=(100,100)) -> None:
+        self._board = Board(size[0], size[1])
         self._agentR = agent_r
         self._agentO = agent_o
 
@@ -267,16 +268,19 @@ class Strategy:
         return Slot(f_row, f_col)
 
     @classmethod
-    def get_adjacent_corner(self, a, board_size):
+    def get_adjacent_corner(self, a, board_size, first_option):
         """
 
         :param a:
         :param board_size:
         :return:
         """
-        #todo: allow getting one of to adjacent corner
-        f_row = 0 if a.row < board_size / 2 else board_size - 1
-        f_col = 0 if a.col > board_size / 2 else board_size - 1
+        if first_option:
+            f_row = 0 if a.row < board_size / 2 else board_size - 1
+            f_col = 0 if a.col > board_size / 2 else board_size - 1
+        else:
+            f_row = 0 if a.row > board_size / 2 else board_size - 1
+            f_col = 0 if a.col < board_size / 2 else board_size - 1
         return Slot(f_row, f_col)
 
     @classmethod
@@ -308,8 +312,10 @@ class Strategy:
             return VerticalCoverageFromCornerFarthestFromIo_Strategy.VerticalCoverageFromCornerFarthestFromIo_Strategy()
         elif strategy_enum == StrategyEnum.SemiCyclingFromFarthestCorner_OpponentAware:
             return CircleOutsideFromCornerFarthestFromIo_Strategy.CircleOutsideFromCornerFarthestFromIo_Strategy()
-        elif strategy_enum == StrategyEnum.SemiCyclingFromAdjacentCorner_OpponentAware:
-            return CircleOutsideFromCornerAdjacentToIo_Strategy.CircleOutsideFromCornerAdjacentToIo_Strategy()
+        elif strategy_enum == StrategyEnum.SemiCyclingFromAdjacentCorner_col_OpponentAware:
+            return CircleOutsideFromCornerAdjacentToIo_Strategy.CircleOutsideFromCornerAdjacentToIo_Strategy(False)
+        elif strategy_enum == StrategyEnum.SemiCyclingFromAdjacentCorner_row_OpponentAware:
+            return CircleOutsideFromCornerAdjacentToIo_Strategy.CircleOutsideFromCornerAdjacentToIo_Strategy(True)
         elif strategy_enum == StrategyEnum.CircleOutsideFromIo:
             return CircleOutsideFromIo_Strategy.CircleOutsideFromIo_Strategy()
 

@@ -2,7 +2,11 @@ from Entities import Slot, Strategy
 
 
 class CircleOutsideFromCornerAdjacentToIo_Strategy(Strategy):
-    set_steps = set()
+    first_option = None
+
+    def __init__(self, first_option):
+        super().__init__()
+        self.first_option = first_option
 
     def get_steps(self, agent_r, board_size = 50, agent_o = None):
         """
@@ -19,7 +23,7 @@ class CircleOutsideFromCornerAdjacentToIo_Strategy(Strategy):
         steps_to_start = Strategy.go_from_a_to_b(a=Slot(agent_r.InitPosX, agent_r.InitPosY),
                                                   b=Strategy.get_adjacent_corner(
                                                       a=Slot(agent_o.InitPosX, agent_o.InitPosY),
-                                                      board_size=board_size))
+                                                      board_size=board_size, first_option=self.first_option))
         for i in steps_to_start:
             self.add_step(i)
 

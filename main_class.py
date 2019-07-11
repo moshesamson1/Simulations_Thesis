@@ -452,6 +452,25 @@ def check_best_strategy(seed):
         result = random_sum / 100.0
         print("(" + str(iteration) + ")" + " ir: " + str(ir) + ", io: " + str(io) + ", result: " + str(result))
 
+def analyze_leader_follower(s_leader_1, s_leader_2, s_follower, s_opp):
+    b = Board(100, 100)
+    leader_agent_1 = Agent("Leader", s_leader_1, 0, 0, board=b)
+    leader_agent_2 = Agent("Leader", s_leader_2, 0, 0, board=b)
+    follower_agent = Agent("Follower", s_follower, 0, 0, board=b, agent_o=
+    Agent("ActingAgainstAgent", s_opp, 0, 0, board=b) if s_opp is not None else None)
+
+    g = Game(leader_agent_1, follower_agent)
+    g.run_game()
+    print("Leader's Reward (%s): %d, Follower's Reward (%s responding to %s): %d" % (s_leader_1.name, g.get_r_gain(),
+                                                                                     s_follower.name, s_opp.name,
+                                                                                     g.get_o_gain()))
+    g = Game(leader_agent_2, follower_agent)
+    g.run_game()
+    print("Leader's Reward (%s): %d, Follower's Reward (%s responding to %s): %d" % (s_leader_2.name, g.get_r_gain(),
+                                                                                     s_follower.name, s_opp.name,
+                                                                                     g.get_o_gain()))
+    return leader_agent_1, leader_agent_2, follower_agent
+
 
 def compare_between_coverage_methods(leader_s1: StrategyEnum, leader_s2: StrategyEnum, follower_s: StrategyEnum) -> None:
     """
@@ -461,58 +480,25 @@ def compare_between_coverage_methods(leader_s1: StrategyEnum, leader_s2: Strateg
     :param follower_s: Second Strategy
     :return: Nothing, for now
     """
-    b13 = Board(100, 100)
-    b23 = Board(100, 100)
-    leader_s1_agent = Agent("V", leader_s1, 0, 0, board=b13)
-    leader_s2_agent = Agent("H", leader_s2, 0, 0, board=b13)
-    follower_s_responding_s1_agent = Agent("N", follower_s, 0, 0, board=b13, agent_o=leader_s1_agent)
-    follower_s_responding_s2_agent = Agent("N", follower_s, 0, 0, board=b23, agent_o=leader_s2_agent)
 
-    g13 = Game(b13, leader_s1_agent, follower_s_responding_s1_agent)
-    g13.run_game(enforce_paths_length=False)
-    print("Leader's Reward (%s): %d, Follower's Reward (%s): %d" % (leader_s1.name, g13.get_r_gain(), follower_s.name,
-                                                                    g13.get_o_gain()))
-
-    g23 = Game(b23, leader_s2_agent, follower_s_responding_s2_agent)
-    g23.run_game(enforce_paths_length=False)
-    print("Leader's Reward (%s): %d, Follower's Reward (%s): %d" % (leader_s2.name, g23.get_r_gain(), follower_s.name,
-                                                                    g23.get_o_gain()))
-
-    # compute optimal results:
-    b1o = Board(100, 100)
-    agent_o1 = Agent("Op", StrategyEnum.FullKnowledgeInterceptionCircular, 0, 0, b1o, leader_s1_agent)
-    g1o = Game(b1o, leader_s1_agent, agent_o1)
-    g1o.run_game()
-    print("Leader's Reward (%s): %d, Follower's Reward (%s against %s): %d"
-          % (leader_s1.name, g1o.get_r_gain(), StrategyEnum.FullKnowledgeInterceptionCircular.name, leader_s1.name,
-             g1o.get_o_gain()))
-
-    # compute optimal results:
-    b2o = Board(100, 100)
-    agent_o2 = Agent("Op", StrategyEnum.FullKnowledgeInterceptionCircular, 0, 0, b2o, leader_s1_agent)
-    g1ob2 = Game(b2o, leader_s2_agent, agent_o2)
-    g1ob2.run_game()
-    print("Leader's Reward (%s): %d, Follower's Reward (%s against %s): %d" %
-          (leader_s1.name, g1ob2.get_r_gain(), StrategyEnum.FullKnowledgeInterceptionCircular.name, leader_s2.name,
-           g1ob2.get_o_gain()))
+    leader_agent_s1,leader_agent_s2, follower_agent = analyze_leader_follower(leader_s1, leader_s2, follower_s, leader_s1)
 
     # adjacent corner check
-    b3 = Board(100,100)
-    agent_o_adjacent_corner = Agent("o", StrategyEnum.SemiCyclingFromAdjacentCorner_OpponentAware, 0,0, b3, leader_s1_agent)
-    g = Game(b3, leader_s1_agent, agent_o_adjacent_corner)
-    g.run_game(enforce_paths_length=False)
-    print("Leader's Reward ({}): {}, Follower's Reward: {}".format(leader_s1.name, g.get_r_gain(), g.get_o_gain()))
+    _, _, follower_agent_rows = analyze_leader_follower(leader_s1, leader_s2, StrategyEnum.SemiCyclingFromAdjacentCorner_row_OpponentAware, leader_s1)
+    _, _, follower_agent_cols = analyze_leader_follower(leader_s1, leader_s2, StrategyEnum.SemiCyclingFromAdjacentCorner_col_OpponentAware, leader_s1)
+
 
     # display heat maps
 
     # display the two strategies the leader is considering, and the cross heatmap
-    leader_s1_agent.display_heat_map(0,0)
-    leader_s2_agent.display_heat_map(0,1)
-    leader_s1_agent.display_cross_heatmap(leader_s2_agent, display_grid_x=0, display_grid_y=2, probabilities=[0.5,0.5])
+    leader_agent_s1.display_heat_map(0,0)
+    leader_agent_s2.display_heat_map(0,1)
+    leader_agent_s1.display_cross_heatmap(leader_agent_s2, display_grid_x=0, display_grid_y=2, probabilities=[0.5,0.5])
 
     # display the follower possible response strategy
-    follower_s_responding_s1_agent.display_heat_map(1,0)
-    agent_o_adjacent_corner.display_heat_map(1,1)
+    follower_agent.display_heat_map(1,0)
+    follower_agent_rows.display_heat_map(1,1)
+    follower_agent_cols.display_heat_map(1,2)
 
     DisplayingClass.get_plt().show()
 
