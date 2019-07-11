@@ -112,7 +112,8 @@ class StrategyEnum(Enum):
     SpiralingIn = 7
     VerticalFromFarthestCorner_OpponentAware = 8
     SemiCyclingFromFarthestCorner_OpponentAware = 9
-    CircleOutsideFromIo = 10
+    SemiCyclingFromAdjacentCorner_OpponentAware = 10
+    CircleOutsideFromIo = 11
 
 
 class Agent:
@@ -147,14 +148,14 @@ class Agent:
             arr[self.steps[id].row][self.steps[id].col] = id
         return arr
 
-    def get_cross_heatmap(self, other):
-        my_hm = self.get_heatmap()
-        o_hm = other.get_heatmap()
+    def get_cross_heatmap(self, other, probabilites):
+        my_hm = probabilites[0] * self.get_heatmap()
+        o_hm = probabilites[1] * other.get_heatmap()
         return np.add(my_hm, o_hm)
 
-    def display_cross_heatmap(self, other, x, y):
-        c = self.get_cross_heatmap(other)
-        DisplayingClass.create_heat_map(c, x, y, "HeatMap Combination of \n({0} and \n{1}):".format(str(self.get_strategy()), str(other.get_strategy())))
+    def display_cross_heatmap(self, other, display_grid_x, display_grid_y, probabilities):
+        c = self.get_cross_heatmap(other, probabilities)
+        DisplayingClass.create_heat_map(c, display_grid_x, display_grid_y, "HeatMap Combination of \n({0} and \n{1}):".format(str(self.get_strategy()), str(other.get_strategy())))
 
 
 
@@ -169,7 +170,8 @@ class Game:
         steps_o = self._agentO.steps
 
         if enforce_paths_length:
-            assert len(steps_o) == len(steps_r)
+            if not len(steps_o) == len(steps_r):
+                raise AssertionError("wrong length! len(steps_o)={}, len(steps_r)={}".format(len(steps_o),len(steps_r)))
 
         for i in range(min(len(steps_r), len(steps_o))):
             # perform step for R
@@ -216,10 +218,11 @@ class Game:
 
 class Strategy:
     __metaclass__ = ABCMeta
-    steps = None  # type: List[Slot]
+    steps = [] # type: List[Slot]
 
     def __init__(self):
         self.steps = []
+        self.set_steps = set()
 
     def __str__(self):
         return self.__class__.__name__
@@ -264,12 +267,26 @@ class Strategy:
         return Slot(f_row, f_col)
 
     @classmethod
+    def get_adjacent_corner(self, a, board_size):
+        """
+
+        :param a:
+        :param board_size:
+        :return:
+        """
+        #todo: allow getting one of to adjacent corner
+        f_row = 0 if a.row < board_size / 2 else board_size - 1
+        f_col = 0 if a.col > board_size / 2 else board_size - 1
+        return Slot(f_row, f_col)
+
+    @classmethod
     def get_strategy_from_enum(cls, strategy_enum):
         # type: (Strategy, int) -> Strategy
-        from Strategies import VerticalCircularCoverage_Strategy,HorizontalCircularCoverage_Strategy, InterceptThenCopy_Strategy,\
-            CoverByQuarters_Strategy,STC_Strategy,VerticalNonCircularCoverage_Strategy,CircleInsideFromCornerFarthestFromIo_Strategy, \
-            CircleOutsideFromBoardCenter_Strategy,VerticalCoverageFromCornerFarthestFromIo_Strategy,CircleOutsideFromCornerFarthestFromIo_Strategy, \
-            CircleOutsideFromIo_Strategy
+        from Strategies import VerticalCircularCoverage_Strategy,HorizontalCircularCoverage_Strategy, \
+            InterceptThenCopy_Strategy, CoverByQuarters_Strategy,STC_Strategy,VerticalNonCircularCoverage_Strategy,\
+            CircleInsideFromCornerFarthestFromIo_Strategy, CircleOutsideFromBoardCenter_Strategy,\
+            VerticalCoverageFromCornerFarthestFromIo_Strategy,CircleOutsideFromCornerFarthestFromIo_Strategy, \
+            CircleOutsideFromIo_Strategy, CircleOutsideFromCornerAdjacentToIo_Strategy
 
         if strategy_enum == StrategyEnum.VerticalCoverageCircular:
             return VerticalCircularCoverage_Strategy.VerticalCircularCoverage_Strategy()
@@ -291,9 +308,15 @@ class Strategy:
             return VerticalCoverageFromCornerFarthestFromIo_Strategy.VerticalCoverageFromCornerFarthestFromIo_Strategy()
         elif strategy_enum == StrategyEnum.SemiCyclingFromFarthestCorner_OpponentAware:
             return CircleOutsideFromCornerFarthestFromIo_Strategy.CircleOutsideFromCornerFarthestFromIo_Strategy()
+        elif strategy_enum == StrategyEnum.SemiCyclingFromAdjacentCorner_OpponentAware:
+            return CircleOutsideFromCornerAdjacentToIo_Strategy.CircleOutsideFromCornerAdjacentToIo_Strategy()
         elif strategy_enum == StrategyEnum.CircleOutsideFromIo:
             return CircleOutsideFromIo_Strategy.CircleOutsideFromIo_Strategy()
 
+    def add_step(self, step):
+        if step not in self.set_steps:
+            self.steps.append(step)
+            self.set_steps.add(step)
 
 
 def send_files_via_email(text, title, file_name):
@@ -324,7 +347,7 @@ def send_files_via_email(text, title, file_name):
 
 
 class DisplayingClass:
-    fig, ax = plt.subplots(3, 3)
+    fig, ax = plt.subplots(2, 3)
 
     @staticmethod
     def get_plt():
@@ -336,7 +359,7 @@ class DisplayingClass:
 
         im = DisplayingClass.ax[x][y].imshow(arr)
         DisplayingClass.ax[x][y].set_title(title)
-        DisplayingClass.fig.tight_layout()
+        # DisplayingClass.fig.tight_layout()
 
         # Create colorbar
         # cbar = DisplayingClass.ax[x][y].figure.colorbar(im, ax=DisplayingClass.ax[x][y])

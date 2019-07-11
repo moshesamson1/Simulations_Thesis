@@ -1,11 +1,13 @@
 from Entities import Slot, Strategy
 
 
-class CircleOutsideFromCornerFarthestFromIo_Strategy(Strategy):
+class CircleOutsideFromCornerAdjacentToIo_Strategy(Strategy):
+    set_steps = set()
+
     def get_steps(self, agent_r, board_size = 50, agent_o = None):
         """
-        This function returns the coverage self.steps, when covering knowing io, starting from the farthest corner from io, and
-        covering semi-cyclic - covering the closer layers first.
+        This function returns the coverage self.steps, when covering knowing io, starting from the a corner adjacent to
+        io, and covering semi-cyclic - covering the closer layers first.
         :param self:
         :param board_size:
         :param agent_o:
@@ -13,11 +15,11 @@ class CircleOutsideFromCornerFarthestFromIo_Strategy(Strategy):
         """
         assert agent_o is not None
         
-        # go to the farthest corner
+        # go to the adjacent corner
         steps_to_start = Strategy.go_from_a_to_b(a=Slot(agent_r.InitPosX, agent_r.InitPosY),
-                                                 b=Strategy.get_farthest_corner(
-                                                     a=Slot(agent_o.InitPosX, agent_o.InitPosY),
-                                                     board_size=board_size))
+                                                  b=Strategy.get_adjacent_corner(
+                                                      a=Slot(agent_o.InitPosX, agent_o.InitPosY),
+                                                      board_size=board_size))
         for i in steps_to_start:
             self.add_step(i)
 
@@ -32,6 +34,7 @@ class CircleOutsideFromCornerFarthestFromIo_Strategy(Strategy):
         # initial horizontal step
         current_slot = current_slot.go_west() if h_dir == 'r' else current_slot.go_east()
         self.add_step(current_slot)
+
         counter += 1
 
         while counter <= board_size * board_size and distance < board_size:
@@ -80,3 +83,4 @@ class CircleOutsideFromCornerFarthestFromIo_Strategy(Strategy):
             distance += 1
 
         return self.steps
+

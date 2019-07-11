@@ -6,9 +6,7 @@ import multiprocessing
 import numpy as np
 import SpanningTreeCoverage
 import operator
-# import matplotlib.pyplot as plt
 import itertools
-# import pylab
 import os
 import time
 
@@ -498,26 +496,23 @@ def compare_between_coverage_methods(leader_s1: StrategyEnum, leader_s2: Strateg
           (leader_s1.name, g1ob2.get_r_gain(), StrategyEnum.FullKnowledgeInterceptionCircular.name, leader_s2.name,
            g1ob2.get_o_gain()))
 
+    # adjacent corner check
+    b3 = Board(100,100)
+    agent_o_adjacent_corner = Agent("o", StrategyEnum.SemiCyclingFromAdjacentCorner_OpponentAware, 0,0, b3, leader_s1_agent)
+    g = Game(b3, leader_s1_agent, agent_o_adjacent_corner)
+    g.run_game(enforce_paths_length=False)
+    print("Leader's Reward ({}): {}, Follower's Reward: {}".format(leader_s1.name, g.get_r_gain(), g.get_o_gain()))
+
     # display heat maps
+
+    # display the two strategies the leader is considering, and the cross heatmap
     leader_s1_agent.display_heat_map(0,0)
-    follower_s_responding_s1_agent.display_heat_map(0,1)
-    follower_s_responding_s1_agent.display_cross_heatmap(leader_s1_agent,0,2)
+    leader_s2_agent.display_heat_map(0,1)
+    leader_s1_agent.display_cross_heatmap(leader_s2_agent, display_grid_x=0, display_grid_y=2, probabilities=[0.5,0.5])
 
-    leader_s2_agent.display_heat_map(1,0)
-    follower_s_responding_s2_agent.display_heat_map(1,1)
-    follower_s_responding_s2_agent.display_cross_heatmap(leader_s2_agent, 1, 2)
-
-    leader_s1_agent.display_heat_map(2,0)
-    leader_s2_agent.display_heat_map(2,1)
-    leader_s1_agent.display_cross_heatmap(leader_s2_agent,2,2)
-
-    # leader_s1_agent.display_heat_map(3, 0)
-    # agent_o1.display_heat_map(3,1)
-    # agent_o1.display_cross_heatmap(leader_s1_agent, 3, 2)
-
-    # leader_s2_agent.display_heat_map(3, 0)
-    # agent_o2.display_heat_map(3, 1)
-    # agent_o2.display_cross_heatmap(leader_s2_agent, 3, 2)
+    # display the follower possible response strategy
+    follower_s_responding_s1_agent.display_heat_map(1,0)
+    agent_o_adjacent_corner.display_heat_map(1,1)
 
     DisplayingClass.get_plt().show()
 
