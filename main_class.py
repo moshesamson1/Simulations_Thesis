@@ -489,6 +489,7 @@ def compare_between_coverage_methods(leader_s1: StrategyEnum, leader_s2: Strateg
 
 
     # display heat maps
+    a = Agent("cbq", StrategyEnum.QuartersCoverageCircular,0,0, Board(100,100))
 
     # display the two strategies the leader is considering, and the cross heatmap
     leader_agent_s1.display_heat_map(0,0)
@@ -499,6 +500,11 @@ def compare_between_coverage_methods(leader_s1: StrategyEnum, leader_s2: Strateg
     follower_agent.display_heat_map(1,0)
     follower_agent_rows.display_heat_map(1,1)
     follower_agent_cols.display_heat_map(1,2)
+
+    # quarters
+    a.display_heat_map(2,0)
+    leader_agent_s1.display_heat_map(2,1)
+    a.display_cross_heatmap(leader_agent_s1,2,2,[0.5,0.5])
 
     DisplayingClass.get_plt().show()
 

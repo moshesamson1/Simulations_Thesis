@@ -353,7 +353,7 @@ def send_files_via_email(text, title, file_name):
 
 
 class DisplayingClass:
-    fig, ax = plt.subplots(2, 3)
+    fig, ax = plt.subplots(3, 3)
 
     @staticmethod
     def get_plt():
