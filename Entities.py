@@ -1,16 +1,15 @@
+import smtplib
 from abc import ABCMeta
 from abc import abstractmethod
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import COMMASPACE, formatdate
-from os.path import basename
-import smtplib
 from enum import Enum
-import numpy as np
-import matplotlib
+from os.path import basename
+
 import matplotlib.pyplot as plt
-from textwrap import wrap
+import numpy as np
 
 
 class Board:
@@ -137,15 +136,18 @@ class Agent:
         return self.steps.index(slot)
 
     def get_strategy(self):
-        return self.Strategy
+        return self.Strategy.__str__()
+
+    def get_strategy_short(self):
+        return self.get_strategy()[:5] + "..."
 
     def display_heat_map(self,x,y):
         arr = self.get_heatmap()
-        DisplayingClass.create_heat_map(arr,x,y, self.get_strategy())
+        DisplayingClass.create_heat_map(arr, x, y, self.get_strategy_short())
 
     def get_heatmap(self):
         arr = np.zeros((self.gameBoard.Rows, self.gameBoard.Cols))
-        for id in range(len(self.steps)):
+        for id in [x for x in range(len(self.steps)) if arr[self.steps[x].row][self.steps[x].col] == 0]:
             arr[self.steps[id].row][self.steps[id].col] = id
         return arr
 
@@ -156,7 +158,9 @@ class Agent:
 
     def display_cross_heatmap(self, other, display_grid_x, display_grid_y, probabilities):
         c = self.get_cross_heatmap(other, probabilities)
-        DisplayingClass.create_heat_map(c, display_grid_x, display_grid_y, "HeatMap Combination of \n({0} and \n{1}):".format(str(self.get_strategy()), str(other.get_strategy())))
+        DisplayingClass.create_heat_map(c, display_grid_x, display_grid_y,
+                                        "HeatMap Combination of \n({0} and \n{1}):".format(
+                                            str(self.get_strategy_short()), str(other.get_strategy_short())))
 
 
 
@@ -166,7 +170,7 @@ class Game:
         self._agentR = agent_r
         self._agentO = agent_o
 
-    def run_game(self, enforce_paths_length=True):
+    def run_game(self, enforce_paths_length=False):
         steps_r = self._agentR.steps
         steps_o = self._agentO.steps
 
@@ -320,9 +324,9 @@ class Strategy:
             return CircleOutsideFromIo_Strategy.CircleOutsideFromIo_Strategy()
 
     def add_step(self, step):
-        if step not in self.set_steps:
-            self.steps.append(step)
-            self.set_steps.add(step)
+        # if step not in self.set_steps:
+        self.steps.append(step)
+        self.set_steps.add(step)
 
 
 def send_files_via_email(text, title, file_name):

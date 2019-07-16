@@ -1,16 +1,16 @@
-from Entities import Board, StrategyEnum, Agent, Slot, Game, send_files_via_email, DisplayingClass
-from random import randint
-import random as rnd
-from joblib import Parallel, delayed
-import multiprocessing
-import numpy as np
-import SpanningTreeCoverage
-import operator
 import itertools
+import multiprocessing
+import operator
 import os
+import random as rnd
 import time
+from random import randint
 
+import numpy as np
+from joblib import Parallel, delayed
 
+import SpanningTreeCoverage
+from Entities import Board, StrategyEnum, Agent, Slot, Game, send_files_via_email, DisplayingClass
 
 So_seed = 123456789
 
@@ -460,7 +460,7 @@ def analyze_leader_follower(s_leader_1, s_leader_2, s_follower, s_opp):
     Agent("ActingAgainstAgent", s_opp, 0, 0, board=b) if s_opp is not None else None)
 
     g = Game(leader_agent_1, follower_agent)
-    g.run_game()
+    g.run_game(enforce_paths_length=False)
     print("Leader's Reward (%s): %d, Follower's Reward (%s responding to %s): %d" % (s_leader_1.name, g.get_r_gain(),
                                                                                      s_follower.name, s_opp.name,
                                                                                      g.get_o_gain()))
