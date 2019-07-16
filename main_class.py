@@ -452,7 +452,8 @@ def check_best_strategy(seed):
         result = random_sum / 100.0
         print("(" + str(iteration) + ")" + " ir: " + str(ir) + ", io: " + str(io) + ", result: " + str(result))
 
-def analyze_leader_follower(s_leader_1, s_leader_2, s_follower, s_opp):
+
+def analyze_leader_follower(s_leader_1, s_leader_2, s_follower, s_opp, probs=[0.5, 0.5]):
     b = Board(100, 100)
     leader_agent_1 = Agent("Leader", s_leader_1, 0, 0, board=b)
     leader_agent_2 = Agent("Leader", s_leader_2, 0, 0, board=b)
@@ -460,15 +461,16 @@ def analyze_leader_follower(s_leader_1, s_leader_2, s_follower, s_opp):
     Agent("ActingAgainstAgent", s_opp, 0, 0, board=b) if s_opp is not None else None)
 
     g = Game(leader_agent_1, follower_agent)
-    g.run_game(enforce_paths_length=False)
-    print("Leader's Reward (%s): %d, Follower's Reward (%s responding to %s): %d" % (s_leader_1.name, g.get_r_gain(),
+    r_gain_1, o_gain_1 = g.run_game()
+    print("Leader's Reward (%s): %d, Follower's Reward (%s responding to %s): %d" % (s_leader_1.name, r_gain_1,
                                                                                      s_follower.name, s_opp.name,
-                                                                                     g.get_o_gain()))
+                                                                                     o_gain_1))
     g = Game(leader_agent_2, follower_agent)
-    g.run_game()
-    print("Leader's Reward (%s): %d, Follower's Reward (%s responding to %s): %d" % (s_leader_2.name, g.get_r_gain(),
+    r_gain_2, o_gain_2 = g.run_game()
+    print("Leader's Reward (%s): %d, Follower's Reward (%s responding to %s): %d" % (s_leader_2.name, r_gain_2,
                                                                                      s_follower.name, s_opp.name,
-                                                                                     g.get_o_gain()))
+                                                                                     o_gain_2))
+    print("\tWeighted Average: {}".format(probs[0] * o_gain_1 + probs[1] * o_gain_2))
     return leader_agent_1, leader_agent_2, follower_agent
 
 
@@ -503,8 +505,8 @@ def compare_between_coverage_methods(leader_s1: StrategyEnum, leader_s2: Strateg
 
     # quarters
     a.display_heat_map(2,0)
-    leader_agent_s1.display_heat_map(2,1)
-    a.display_cross_heatmap(leader_agent_s1,2,2,[0.5,0.5])
+    leader_agent_s2.display_heat_map(2, 1)
+    a.display_cross_heatmap(leader_agent_s2, 2, 2, [0.5, 0.5])
 
     DisplayingClass.get_plt().show()
 

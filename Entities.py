@@ -147,8 +147,9 @@ class Agent:
 
     def get_heatmap(self):
         arr = np.zeros((self.gameBoard.Rows, self.gameBoard.Cols))
-        for id in [x for x in range(len(self.steps)) if arr[self.steps[x].row][self.steps[x].col] == 0]:
-            arr[self.steps[id].row][self.steps[id].col] = id
+        for id in range(len(self.steps)):
+            if arr[self.steps[id].row][self.steps[id].col] == 0:
+                arr[self.steps[id].row][self.steps[id].col] = id
         return arr
 
     def get_cross_heatmap(self, other, probabilites):
@@ -159,7 +160,7 @@ class Agent:
     def display_cross_heatmap(self, other, display_grid_x, display_grid_y, probabilities):
         c = self.get_cross_heatmap(other, probabilities)
         DisplayingClass.create_heat_map(c, display_grid_x, display_grid_y,
-                                        "HeatMap Combination of \n({0} and \n{1}):".format(
+                                        "comb. of \n({0} and \n{1}):".format(
                                             str(self.get_strategy_short()), str(other.get_strategy_short())))
 
 
@@ -191,6 +192,7 @@ class Game:
                 self._board.Slots[int(step_o.row)][int(step_o.col)].has_been_visited = True
                 self._board.Slots[int(step_o.row)][int(step_o.col)].covered_by = self._agentO.Name
 
+        return self.get_r_gain(), self.get_o_gain()
     def get_r_gain(self):
         cond_count = 0
 
