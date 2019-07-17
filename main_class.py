@@ -494,19 +494,30 @@ def compare_between_coverage_methods(leader_s1: StrategyEnum, leader_s2: Strateg
     a = Agent("cbq", StrategyEnum.QuartersCoverageCircular,0,0, Board(100,100))
 
     # display the two strategies the leader is considering, and the cross heatmap
-    leader_agent_s1.display_heat_map(0,0)
-    leader_agent_s2.display_heat_map(0,1)
-    leader_agent_s1.display_cross_heatmap(leader_agent_s2, display_grid_x=0, display_grid_y=2, probabilities=[0.5,0.5])
+    leader_agent_s1.display_heat_map(0, 0)
+    leader_agent_s2.display_heat_map(0, 1)
+    leader_agent_s1.display_cross_heatmap(leader_agent_s2, display_grid_x=0, display_grid_y=2, probabilities=[0.5, 0.5])
 
     # display the follower possible response strategy
-    follower_agent.display_heat_map(1,0)
-    follower_agent_rows.display_heat_map(1,1)
-    follower_agent_cols.display_heat_map(1,2)
+    follower_agent.display_heat_map(1, 0)
+    follower_agent.display_sub_heatmap(
+        leader_agent_s1.get_cross_heatmap(leader_agent_s2, probabilities=[0.5, 0.5]), 1,
+                                       3, probabilities=[0.5, 0.5])
+
+    follower_agent_rows.display_heat_map(2, 0)
+    follower_agent_rows.display_sub_heatmap(
+        leader_agent_s1.get_cross_heatmap(leader_agent_s2, probabilities=[0.5, 0.5]), 2,
+                                       3, probabilities=[0.5, 0.5])
+
+    follower_agent_cols.display_heat_map(3, 0)
+    follower_agent_cols.display_sub_heatmap(
+        leader_agent_s1.get_cross_heatmap(leader_agent_s2, probabilities=[0.5, 0.5]), 3,
+        3, probabilities=[0.5, 0.5])
 
     # quarters
-    a.display_heat_map(2,0)
-    leader_agent_s2.display_heat_map(2, 1)
-    a.display_cross_heatmap(leader_agent_s2, 2, 2, [0.5, 0.5])
+    a.display_heat_map(4,0)
+    leader_agent_s2.display_heat_map(4, 1)
+    a.display_cross_heatmap(leader_agent_s2, 4, 2, [0.5, 0.5])
 
     DisplayingClass.get_plt().show()
 

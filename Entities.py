@@ -152,10 +152,15 @@ class Agent:
                 arr[self.steps[id].row][self.steps[id].col] = id
         return arr
 
-    def get_cross_heatmap(self, other, probabilites):
-        my_hm = probabilites[0] * self.get_heatmap()
-        o_hm = probabilites[1] * other.get_heatmap()
+    def get_cross_heatmap(self, other, probabilities=[0.5, 0.5]):
+        my_hm = probabilities[0] * self.get_heatmap()
+        o_hm = probabilities[1] * other.get_heatmap()
         return np.add(my_hm, o_hm)
+
+    def get_sub_heatmap(self, other_hm, probabilities=[0.5, 0.5]):
+        my_hm = probabilities[0] * self.get_heatmap()
+        o_hm = probabilities[1] * other_hm
+        return np.subtract(my_hm, o_hm)
 
     def display_cross_heatmap(self, other, display_grid_x, display_grid_y, probabilities):
         c = self.get_cross_heatmap(other, probabilities)
@@ -163,7 +168,9 @@ class Agent:
                                         "comb. of \n({0} and \n{1}):".format(
                                             str(self.get_strategy_short()), str(other.get_strategy_short())))
 
-
+    def display_sub_heatmap(self, other_hm, display_grid_x, display_grid_y, probabilities):
+        c = self.get_sub_heatmap(other_hm, probabilities)
+        DisplayingClass.create_heat_map(c, display_grid_x, display_grid_y, "subs")
 
 class Game:
     def __init__(self, agent_r: Agent, agent_o: Agent, size=(100,100)) -> None:
@@ -290,12 +297,11 @@ class Strategy:
         return Slot(f_row, f_col)
 
     @classmethod
-    def get_strategy_from_enum(cls, strategy_enum):
-        # type: (Strategy, int) -> Strategy
-        from Strategies import VerticalCircularCoverage_Strategy,HorizontalCircularCoverage_Strategy, \
-            InterceptThenCopy_Strategy, CoverByQuarters_Strategy,STC_Strategy,VerticalNonCircularCoverage_Strategy,\
+    def get_strategy_from_enum(cls, strategy_enum: StrategyEnum):
+        from Strategies import VerticalCircularCoverage_Strategy, HorizontalCircularCoverage_Strategy, \
+            InterceptThenCopy_Strategy, CoverByQuarters_Strategy, STC_Strategy,VerticalNonCircularCoverage_Strategy,\
             CircleInsideFromCornerFarthestFromIo_Strategy, CircleOutsideFromBoardCenter_Strategy,\
-            VerticalCoverageFromCornerFarthestFromIo_Strategy,CircleOutsideFromCornerFarthestFromIo_Strategy, \
+            VerticalCoverageFromCornerFarthestFromIo_Strategy, CircleOutsideFromCornerFarthestFromIo_Strategy, \
             CircleOutsideFromIo_Strategy, CircleOutsideFromCornerAdjacentToIo_Strategy
 
         if strategy_enum == StrategyEnum.VerticalCoverageCircular:
@@ -359,7 +365,7 @@ def send_files_via_email(text, title, file_name):
 
 
 class DisplayingClass:
-    fig, ax = plt.subplots(3, 3)
+    fig, ax = plt.subplots(5, 4)
 
     @staticmethod
     def get_plt():
@@ -369,8 +375,10 @@ class DisplayingClass:
     def create_heat_map(arr, x,y, title=''):
         # arr = np.array(array)
 
-        im = DisplayingClass.ax[x][y].imshow(arr)
+        DisplayingClass.ax[x][y].imshow(arr)
         DisplayingClass.ax[x][y].set_title(title)
+        DisplayingClass.ax[x][y].set_yticklabels([])
+        DisplayingClass.ax[x][y].set_xticklabels([])
         # DisplayingClass.fig.tight_layout()
 
         # Create colorbar
