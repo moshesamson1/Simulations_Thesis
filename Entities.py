@@ -113,7 +113,8 @@ class StrategyEnum(Enum):
     SemiCyclingFromFarthestCorner_OpponentAware = 9
     SemiCyclingFromAdjacentCorner_row_OpponentAware = 10
     SemiCyclingFromAdjacentCorner_col_OpponentAware = 11
-    CircleOutsideFromIo = 12
+    CircleOutsideFromIo = 12,
+    GrowingDiagonalsCornerToCorner = 13
 
 
 class Agent:
@@ -167,10 +168,15 @@ class Agent:
         DisplayingClass.create_heat_map(c, display_grid_x, display_grid_y,
                                         "comb. of \n({0} and \n{1}):".format(
                                             str(self.get_strategy_short()), str(other.get_strategy_short())))
+        return c
 
     def display_sub_heatmap(self, other_hm, display_grid_x, display_grid_y, probabilities):
         c = self.get_sub_heatmap(other_hm, probabilities)
-        DisplayingClass.create_heat_map(c, display_grid_x, display_grid_y, "subs")
+
+        DisplayingClass.create_heat_map(c, display_grid_x, display_grid_y,
+                                        "subs. sum: {}\navg: {}\n std: {}".format(np.sum(c),
+                                                                                  np.average(c),
+                                                                                  np.std(c)))
 
 class Game:
     def __init__(self, agent_r: Agent, agent_o: Agent, size=(100,100)) -> None:
@@ -302,7 +308,8 @@ class Strategy:
             InterceptThenCopy_Strategy, CoverByQuarters_Strategy, STC_Strategy,VerticalNonCircularCoverage_Strategy,\
             CircleInsideFromCornerFarthestFromIo_Strategy, CircleOutsideFromBoardCenter_Strategy,\
             VerticalCoverageFromCornerFarthestFromIo_Strategy, CircleOutsideFromCornerFarthestFromIo_Strategy, \
-            CircleOutsideFromIo_Strategy, CircleOutsideFromCornerAdjacentToIo_Strategy
+            CircleOutsideFromIo_Strategy, CircleOutsideFromCornerAdjacentToIo_Strategy, \
+            GrowingDiagonalsCornerToCorner_Strategy
 
         if strategy_enum == StrategyEnum.VerticalCoverageCircular:
             return VerticalCircularCoverage_Strategy.VerticalCircularCoverage_Strategy()
@@ -330,6 +337,8 @@ class Strategy:
             return CircleOutsideFromCornerAdjacentToIo_Strategy.CircleOutsideFromCornerAdjacentToIo_Strategy(True)
         elif strategy_enum == StrategyEnum.CircleOutsideFromIo:
             return CircleOutsideFromIo_Strategy.CircleOutsideFromIo_Strategy()
+        elif strategy_enum == StrategyEnum.GrowingDiagonalsCornerToCorner:
+            return GrowingDiagonalsCornerToCorner_Strategy.GrowingDiagonalsCornerToCorner_Strategy()
 
     def add_step(self, step):
         # if step not in self.set_steps:
@@ -365,7 +374,7 @@ def send_files_via_email(text, title, file_name):
 
 
 class DisplayingClass:
-    fig, ax = plt.subplots(5, 4)
+    fig, ax = plt.subplots(5, 3)
 
     @staticmethod
     def get_plt():

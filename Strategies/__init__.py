@@ -8,4 +8,5 @@ __all__ = ["CircleOutsideFromIo_Strategy",
            "CircleInsideFromCornerFarthestFromIo_Strategy",
            "CircleOutsideFromBoardCenter_Strategy",
            "VerticalCoverageFromCornerFarthestFromIo_Strategy",
-           "CircleOutsideFromCornerFarthestFromIo_Strategy"]
+           "CircleOutsideFromCornerFarthestFromIo_Strategy",
+           "GrowingDiagonalsCornerToCorner_Strategy"]
