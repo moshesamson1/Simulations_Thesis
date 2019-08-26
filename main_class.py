@@ -1,12 +1,12 @@
-import itertools
 import multiprocessing
 import operator
 import os
 import random as rnd
-import time
 from random import randint
 
+import itertools
 import numpy as np
+import time
 from joblib import Parallel, delayed
 
 import SpanningTreeCoverage
@@ -453,7 +453,19 @@ def check_best_strategy(seed):
         print("(" + str(iteration) + ")" + " ir: " + str(ir) + ", io: " + str(io) + ", result: " + str(result))
 
 
-def analyze_leader_follower(s_leader_1, s_leader_2, s_follower, s_opp, probs=[0.5, 0.5]):
+def analyze_leader_follower(s_leader_1, s_leader_2, s_follower, s_opp, probs=None):
+    """
+    Simulating Leader-Follower game, with multiple strategies for the leader, and a single option for the follower.
+    todo: Switch from only two strategies to x strategies
+    :param s_leader_1: leader's first covering path
+    :param s_leader_2: leader's second covering path
+    :param s_follower: Follower's covering path
+    :param s_opp:
+    :param probs:
+    :return:
+    """
+    if probs is None:
+        probs = [0.5, 0.5]
     b = Board(100, 100)
     leader_agent_1 = Agent("Leader", s_leader_1, 0, 0, board=b)
     leader_agent_2 = Agent("Leader", s_leader_2, 0, 0, board=b)
