@@ -1,5 +1,5 @@
-from Entities import Slot, Strategy
-from abc import  abstractmethod
+from Simulations_Thesis.Entities import Slot, Strategy
+
 
 class CircleInsideFromCornerFarthestFromIo_Strategy(Strategy):
     def get_steps(self, agent_r, board_size = 50, agent_o = None):
@@ -12,7 +12,7 @@ class CircleInsideFromCornerFarthestFromIo_Strategy(Strategy):
             """
 
         next_slot = Slot(agent_r.InitPosX, agent_r.InitPosY)
-
+        # todo: impreve performance by using extending of lists
         # start by going toward the closest corner
         if next_slot.row < board_size / 2:
             while next_slot.row > 0:

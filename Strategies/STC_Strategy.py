@@ -1,6 +1,5 @@
-from Entities import Strategy, Slot
-from abc import abstractmethod
-import SpanningTreeCoverage
+from Simulations_Thesis.Entities import Strategy, Slot
+from Simulations_Thesis import SpanningTreeCoverage
 
 
 class STC_Strategy(Strategy):

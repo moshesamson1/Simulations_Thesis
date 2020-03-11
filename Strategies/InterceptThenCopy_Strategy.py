@@ -1,5 +1,4 @@
-from Entities import Strategy, Slot, StrategyEnum
-from abc import abstractmethod
+from Simulations_Thesis.Entities import Strategy, Slot
 from math import *
 import numpy as np
 

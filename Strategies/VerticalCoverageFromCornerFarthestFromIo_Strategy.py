@@ -1,5 +1,4 @@
-from Entities import Slot, Strategy
-from abc import abstractmethod
+from Simulations_Thesis.Entities import Slot, Strategy
 
 
 class VerticalCoverageFromCornerFarthestFromIo_Strategy(Strategy):

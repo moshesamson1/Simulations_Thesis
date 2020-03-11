@@ -4,7 +4,9 @@ from abc import abstractmethod
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email.utils import COMMASPACE, formatdate
+# from email.utils import COMMASPACE, formatdate
+from os.path import basename
+import smtplib
 from enum import Enum
 from os.path import basename
 
@@ -94,7 +96,7 @@ class Slot:
         return self.row, self.col
 
     def __str__(self):
-        return "{0},{1},{2}".format(str(int(self.row)), str(int(self.col)), str(self.covered_by))
+        return "({0},{1})".format(str(int(self.row)), str(int(self.col)))
 
     def __repr__(self):
         return str(self)
@@ -111,10 +113,10 @@ class StrategyEnum(Enum):
     SpiralingIn = 7
     VerticalFromFarthestCorner_OpponentAware = 8
     SemiCyclingFromFarthestCorner_OpponentAware = 9
-    SemiCyclingFromAdjacentCorner_row_OpponentAware = 10
-    SemiCyclingFromAdjacentCorner_col_OpponentAware = 11
-    CircleOutsideFromIo = 12,
-    GrowingDiagonalsCornerToCorner = 13
+    CircleOutsideFromIo = 10,
+    LCP = 11,
+    LONGEST_TO_REACH = 12,
+    TRULY_RANDOM = 13,
 
 
 class Agent:
@@ -132,9 +134,13 @@ class Agent:
         self.Strategy = Strategy.get_strategy_from_enum(strategy_enum)
         self.steps = self.Strategy.get_steps(self, len(board.Slots), agent_o)
 
-    def get_interception_time_of_slot(self, slot: Slot):
-        assert len(self.steps) >= 0
-        return self.steps.index(slot)
+    def get_tdv(self):
+        from math import fabs
+        return sum([(1/(1+stepI))*(fabs(self.steps[stepI].row - self.steps[0].row)+fabs(self.steps[stepI].col - self.steps[0].col)) for stepI in range(len(self.steps))])
+
+    def get_frame(self):
+        pass
+
 
     def get_strategy(self):
         return self.Strategy.__str__()
@@ -287,8 +293,12 @@ class Strategy:
         return Slot(f_row, f_col)
 
     @classmethod
-    def get_adjacent_corner(self, a, board_size, first_option):
-        """
+    def get_strategy_from_enum(cls, strategy_enum):
+        # type: (Strategy, int) -> Strategy
+        from Simulations_Thesis.Strategies import VerticalCircularCoverage_Strategy,HorizontalCircularCoverage_Strategy, InterceptThenCopy_Strategy,\
+            CoverByQuarters_Strategy,STC_Strategy,VerticalNonCircularCoverage_Strategy,CircleInsideFromCornerFarthestFromIo_Strategy, \
+            CircleOutsideFromBoardCenter_Strategy,VerticalCoverageFromCornerFarthestFromIo_Strategy,CircleOutsideFromCornerFarthestFromIo_Strategy, \
+            CircleOutsideFromIo_Strategy, LCP_Strategy, LongestToReach_Strategy, TrulyRandom_Strategy
 
         :param a:
         :param board_size:
@@ -337,63 +347,36 @@ class Strategy:
             return CircleOutsideFromCornerAdjacentToIo_Strategy.CircleOutsideFromCornerAdjacentToIo_Strategy(True)
         elif strategy_enum == StrategyEnum.CircleOutsideFromIo:
             return CircleOutsideFromIo_Strategy.CircleOutsideFromIo_Strategy()
-        elif strategy_enum == StrategyEnum.GrowingDiagonalsCornerToCorner:
-            return GrowingDiagonalsCornerToCorner_Strategy.GrowingDiagonalsCornerToCorner_Strategy()
-
-    def add_step(self, step):
-        # if step not in self.set_steps:
-        self.steps.append(step)
-        self.set_steps.add(step)
-
-
-def send_files_via_email(text, title, file_name):
-    server = smtplib.SMTP('smtp.gmail.com', 587)
-    server.starttls()
-    password = input("Password for moshe.samson@mail.huji.ac.il: ")
-    server.login("moshe.samson@mail.huji.ac.il", password)
-
-    msg = MIMEMultipart()
-    msg['From'] = "moshe.samson@mail.huji.ac.il"
-    msg['To'] = COMMASPACE.join("samson.moshe@gmail.com")
-    msg['Date'] = formatdate(localtime=True)
-    msg['Subject'] = title
-
-    msg.attach(MIMEText(text))
-
-    with open(file_name, "rb") as fil:
-        part = MIMEApplication(
-            fil.read(),
-            Name=basename(file_name)
-        )
-
-    # After the file is closed
-    part['Content-Disposition'] = 'attachment; filename="%s"' % basename(file_name)
-    msg.attach(part)
-    server.sendmail("moshe.samson@mail.huji.ac.il", "samson.moshe@gmail.com", msg.as_string())
-    server.quit()
+        elif strategy_enum == StrategyEnum.LCP:
+            return LCP_Strategy.LCP_Strategy()
+        elif strategy_enum == StrategyEnum.LONGEST_TO_REACH:
+            return LongestToReach_Strategy.LongestToReach_Strategy()
+        elif strategy_enum == StrategyEnum.TRULY_RANDOM:
+            return TrulyRandom_Strategy.TrulyRandomStrategy()
 
 
-class DisplayingClass:
-    fig, ax = plt.subplots(5, 3)
 
-    @staticmethod
-    def get_plt():
-        return plt
-
-    @staticmethod
-    def create_heat_map(arr, x,y, title=''):
-        # arr = np.array(array)
-
-        DisplayingClass.ax[x][y].imshow(arr)
-        DisplayingClass.ax[x][y].set_title(title)
-        DisplayingClass.ax[x][y].set_yticklabels([])
-        DisplayingClass.ax[x][y].set_xticklabels([])
-        # DisplayingClass.fig.tight_layout()
-
-        # Create colorbar
-        # cbar = DisplayingClass.ax[x][y].figure.colorbar(im, ax=DisplayingClass.ax[x][y])
-        # cbar.ax.set_ylabel("color bar label", rotation=-90, va="bottom")
-
-        return plt
-
-
+# def send_files_via_email(text, title, file_name):
+#     server = smtplib.SMTP('smtp.gmail.com', 587)
+#     server.starttls()
+#     server.login("moshe.samson@mail.huji.ac.il", "moshe_samson770")
+#
+#     msg = MIMEMultipart()
+#     msg['From'] = "moshe.samson@mail.huji.ac.il"
+#     msg['To'] = COMMASPACE.join("samson.moshe@gmail.com")
+#     msg['Date'] = formatdate(localtime=True)
+#     msg['Subject'] = title
+#
+#     msg.attach(MIMEText(text))
+#
+#     with open(file_name, "rb") as fil:
+#         part = MIMEApplication(
+#             fil.read(),
+#             Name=basename(file_name)
+#         )
+#
+#     # After the file is closed
+#     part['Content-Disposition'] = 'attachment; filename="%s"' % basename(file_name)
+#     msg.attach(part)
+#     server.sendmail("moshe.samson@mail.huji.ac.il", "samson.moshe@gmail.com", msg.as_string())
+#     server.quit()
