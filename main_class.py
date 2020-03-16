@@ -599,7 +599,7 @@ def validate_lcp():
     random_results = []
     for _ in tqdm(range(num_samples)):
         b = Board(32, 32)
-        agentO = Agent("O", StrategyEnum.RandomSTC, 0, 1, board=b)
+        agentO = Agent("O", StrategyEnum.RandomSTC, 31, 31, board=b)
         agentR = Agent("R", StrategyEnum.RandomSTC, 0, 0, board=b, agent_o=agentO)
         game = Game(b, agentR, agentO)
         game.run_game(enforce_paths_length=False)
@@ -609,7 +609,7 @@ def validate_lcp():
     lcp_results = []
     for _ in tqdm(range(num_samples)):
         b = Board(32,32)
-        agentO = Agent("O",StrategyEnum.RandomSTC, 0, 1, board=b)
+        agentO = Agent("O",StrategyEnum.RandomSTC, 31, 31, board=b)
         agentR = Agent("R",StrategyEnum.LCP , 0, 0, board=b, agent_o=agentO)
         game = Game(b,agentR,agentO)
         game.run_game(enforce_paths_length=False)
@@ -619,7 +619,7 @@ def validate_lcp():
     ltr_results = []
     for _ in tqdm(range(num_samples)):
         b = Board(32, 32)
-        agentO = Agent("O", StrategyEnum.RandomSTC, 0, 1, board=b)
+        agentO = Agent("O", StrategyEnum.RandomSTC, 31, 31, board=b)
         agentR = Agent("R", StrategyEnum.LONGEST_TO_REACH, 0, 0, board=b, agent_o=agentO)
         game = Game(b, agentR, agentO)
         game.run_game(enforce_paths_length=False)
@@ -629,7 +629,7 @@ def validate_lcp():
     circVert_results = []
     for _ in tqdm(range(num_samples)):
         b = Board(32, 32)
-        agentO = Agent("O", StrategyEnum.RandomSTC, 0, 1, board=b)
+        agentO = Agent("O", StrategyEnum.RandomSTC, 31, 31, board=b)
         agentR = Agent("R", StrategyEnum.VerticalCoverageCircular, 0, 0, board=b, agent_o=agentO)
         game = Game(b, agentR, agentO)
         game.run_game(enforce_paths_length=False)
@@ -639,7 +639,7 @@ def validate_lcp():
     noncircVert_results = []
     for _ in tqdm(range(num_samples)):
         b = Board(32, 32)
-        agentO = Agent("O", StrategyEnum.RandomSTC, 0, 1, board=b)
+        agentO = Agent("O", StrategyEnum.RandomSTC, 31, 31, board=b)
         agentR = Agent("R", StrategyEnum.VerticalCoverageNonCircular, 0, 0, board=b, agent_o=agentO)
         game = Game(b, agentR, agentO)
         game.run_game(enforce_paths_length=False)
@@ -649,7 +649,7 @@ def validate_lcp():
     circHor_results = []
     for _ in tqdm(range(num_samples)):
         b = Board(32, 32)
-        agentO = Agent("O", StrategyEnum.RandomSTC, 0, 1, board=b)
+        agentO = Agent("O", StrategyEnum.RandomSTC, 31, 31, board=b)
         agentR = Agent("R", StrategyEnum.HorizontalCoverageCircular, 0, 0, board=b, agent_o=agentO)
         game = Game(b, agentR, agentO)
         game.run_game(enforce_paths_length=False)
