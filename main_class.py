@@ -12,8 +12,8 @@ import seaborn as sb
 import matplotlib.pyplot as plt
 import itertools
 
-import SpanningTreeCoverage
-from Entities import Board, StrategyEnum, Agent, Slot, Game, send_files_via_email, DisplayingClass
+import Simulations_Thesis.SpanningTreeCoverage
+from Simulations_Thesis.Entities import Board, StrategyEnum, Agent, Slot, Game
 
 So_seed = 123456789
 
@@ -594,14 +594,14 @@ def take_snapshots():
     # print((sum(random_results) / float(len(random_results))) / 1024.0)
 
 def validate_lcp():
-    num_samples=100
+    num_samples=2
 
     random_results = []
     for _ in tqdm(range(num_samples)):
         b = Board(32, 32)
         agentO = Agent("O", StrategyEnum.RandomSTC, 31, 31, board=b)
         agentR = Agent("R", StrategyEnum.RandomSTC, 0, 0, board=b, agent_o=agentO)
-        game = Game(b, agentR, agentO)
+        game = Game(agentR, agentO, (32,32))
         game.run_game(enforce_paths_length=False)
         random_results.append(game.get_r_gain())
     print((sum(random_results) / float(len(random_results))) / 1024.0)
@@ -611,7 +611,7 @@ def validate_lcp():
         b = Board(32,32)
         agentO = Agent("O",StrategyEnum.RandomSTC, 31, 31, board=b)
         agentR = Agent("R",StrategyEnum.LCP , 0, 0, board=b, agent_o=agentO)
-        game = Game(b,agentR,agentO)
+        game = Game(agentR, agentO, (32,32))
         game.run_game(enforce_paths_length=False)
         lcp_results.append(game.get_r_gain())
     print((sum(lcp_results)/float(len(lcp_results)))/1024.0)
@@ -621,7 +621,7 @@ def validate_lcp():
         b = Board(32, 32)
         agentO = Agent("O", StrategyEnum.RandomSTC, 31, 31, board=b)
         agentR = Agent("R", StrategyEnum.LONGEST_TO_REACH, 0, 0, board=b, agent_o=agentO)
-        game = Game(b, agentR, agentO)
+        game = Game(agentR, agentO, (32,32))
         game.run_game(enforce_paths_length=False)
         ltr_results.append(game.get_r_gain())
     print((sum(ltr_results) / float(len(ltr_results))) / 1024.0)
@@ -631,7 +631,7 @@ def validate_lcp():
         b = Board(32, 32)
         agentO = Agent("O", StrategyEnum.RandomSTC, 31, 31, board=b)
         agentR = Agent("R", StrategyEnum.VerticalCoverageCircular, 0, 0, board=b, agent_o=agentO)
-        game = Game(b, agentR, agentO)
+        game = Game(agentR, agentO, (32,32))
         game.run_game(enforce_paths_length=False)
         circVert_results.append(game.get_r_gain())
     print((sum(circVert_results) / float(len(circVert_results))) / 1024.0)
@@ -641,7 +641,7 @@ def validate_lcp():
         b = Board(32, 32)
         agentO = Agent("O", StrategyEnum.RandomSTC, 31, 31, board=b)
         agentR = Agent("R", StrategyEnum.VerticalCoverageNonCircular, 0, 0, board=b, agent_o=agentO)
-        game = Game(b, agentR, agentO)
+        game = Game(agentR, agentO, (32,32))
         game.run_game(enforce_paths_length=False)
         noncircVert_results.append(game.get_r_gain())
     print((sum(noncircVert_results) / float(len(noncircVert_results))) / 1024.0)
@@ -651,7 +651,7 @@ def validate_lcp():
         b = Board(32, 32)
         agentO = Agent("O", StrategyEnum.RandomSTC, 31, 31, board=b)
         agentR = Agent("R", StrategyEnum.HorizontalCoverageCircular, 0, 0, board=b, agent_o=agentO)
-        game = Game(b, agentR, agentO)
+        game = Game(agentR, agentO, (32,32))
         game.run_game(enforce_paths_length=False)
         circHor_results.append(game.get_r_gain())
     print((sum(circHor_results) / float(len(circHor_results))) / 1024.0)

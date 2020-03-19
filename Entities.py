@@ -13,7 +13,6 @@ from os.path import basename
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 class Board:
     def __init__(self, rows, cols):
         self.Rows = rows
@@ -117,6 +116,8 @@ class StrategyEnum(Enum):
     LCP = 11,
     LONGEST_TO_REACH = 12,
     TRULY_RANDOM = 13,
+    SemiCyclingFromAdjacentCorner_col_OpponentAware = 14,
+    SemiCyclingFromAdjacentCorner_row_OpponentAware = 15
 
 
 class Agent:
@@ -150,7 +151,7 @@ class Agent:
 
     def display_heat_map(self,x,y):
         arr = self.get_heatmap()
-        DisplayingClass.create_heat_map(arr, x, y, self.get_strategy_short())
+        # DisplayingClass.create_heat_map(arr, x, y, self.get_strategy_short())
 
     def get_heatmap(self):
         arr = np.zeros((self.gameBoard.Rows, self.gameBoard.Cols))
@@ -169,20 +170,20 @@ class Agent:
         o_hm = probabilities[1] * other_hm
         return np.subtract(my_hm, o_hm)
 
-    def display_cross_heatmap(self, other, display_grid_x, display_grid_y, probabilities):
-        c = self.get_cross_heatmap(other, probabilities)
-        DisplayingClass.create_heat_map(c, display_grid_x, display_grid_y,
-                                        "comb. of \n({0} and \n{1}):".format(
-                                            str(self.get_strategy_short()), str(other.get_strategy_short())))
-        return c
+    # def display_cross_heatmap(self, other, display_grid_x, display_grid_y, probabilities):
+    #     c = self.get_cross_heatmap(other, probabilities)
+    #     DisplayingClass.create_heat_map(c, display_grid_x, display_grid_y,
+    #                                     "comb. of \n({0} and \n{1}):".format(
+    #                                         str(self.get_strategy_short()), str(other.get_strategy_short())))
+    #     return c
 
-    def display_sub_heatmap(self, other_hm, display_grid_x, display_grid_y, probabilities):
-        c = self.get_sub_heatmap(other_hm, probabilities)
-
-        DisplayingClass.create_heat_map(c, display_grid_x, display_grid_y,
-                                        "subs. sum: {}\navg: {}\n std: {}".format(np.sum(c),
-                                                                                  np.average(c),
-                                                                                  np.std(c)))
+    # def display_sub_heatmap(self, other_hm, display_grid_x, display_grid_y, probabilities):
+    #     c = self.get_sub_heatmap(other_hm, probabilities)
+    #     #
+    #     # DisplayingClass.create_heat_map(c, display_grid_x, display_grid_y,
+    #     #                                 "subs. sum: {}\navg: {}\n std: {}".format(np.sum(c),
+    #     #                                                                           np.average(c),
+    #     #                                                                           np.std(c)))
 
 class Game:
     def __init__(self, agent_r: Agent, agent_o: Agent, size=(100,100)) -> None:
@@ -292,34 +293,35 @@ class Strategy:
         f_col = 0 if a.col > board_size / 2 else board_size - 1
         return Slot(f_row, f_col)
 
-    @classmethod
-    def get_strategy_from_enum(cls, strategy_enum):
-        # type: (Strategy, int) -> Strategy
-        from Simulations_Thesis.Strategies import VerticalCircularCoverage_Strategy,HorizontalCircularCoverage_Strategy, InterceptThenCopy_Strategy,\
-            CoverByQuarters_Strategy,STC_Strategy,VerticalNonCircularCoverage_Strategy,CircleInsideFromCornerFarthestFromIo_Strategy, \
-            CircleOutsideFromBoardCenter_Strategy,VerticalCoverageFromCornerFarthestFromIo_Strategy,CircleOutsideFromCornerFarthestFromIo_Strategy, \
-            CircleOutsideFromIo_Strategy, LCP_Strategy, LongestToReach_Strategy, TrulyRandom_Strategy
-
-        :param a:
-        :param board_size:
-        :return:
-        """
-        if first_option:
-            f_row = 0 if a.row < board_size / 2 else board_size - 1
-            f_col = 0 if a.col > board_size / 2 else board_size - 1
-        else:
-            f_row = 0 if a.row > board_size / 2 else board_size - 1
-            f_col = 0 if a.col < board_size / 2 else board_size - 1
-        return Slot(f_row, f_col)
+    # @classmethod
+    # def get_strategy_from_enum(cls, strategy_enum):
+    #     """
+    #     # type: (Strategy, int) -> Strategy
+    #     :param a:
+    #     :param board_size:
+    #     :return:
+    #     """
+    #     from Simulations_Thesis.Strategies import VerticalCircularCoverage_Strategy,HorizontalCircularCoverage_Strategy, InterceptThenCopy_Strategy,\
+    #         CoverByQuarters_Strategy,STC_Strategy,VerticalNonCircularCoverage_Strategy,CircleInsideFromCornerFarthestFromIo_Strategy, \
+    #         CircleOutsideFromBoardCenter_Strategy,VerticalCoverageFromCornerFarthestFromIo_Strategy,CircleOutsideFromCornerFarthestFromIo_Strategy, \
+    #         CircleOutsideFromIo_Strategy, LCP_Strategy, LongestToReach_Strategy, TrulyRandom_Strategy
+    #
+    #     if first_option:
+    #         f_row = 0 if a.row < board_size / 2 else board_size - 1
+    #         f_col = 0 if a.col > board_size / 2 else board_size - 1
+    #     else:
+    #         f_row = 0 if a.row > board_size / 2 else board_size - 1
+    #         f_col = 0 if a.col < board_size / 2 else board_size - 1
+    #     return Slot(f_row, f_col)
 
     @classmethod
     def get_strategy_from_enum(cls, strategy_enum: StrategyEnum):
-        from Strategies import VerticalCircularCoverage_Strategy, HorizontalCircularCoverage_Strategy, \
+        from Simulations_Thesis.Strategies import VerticalCircularCoverage_Strategy, HorizontalCircularCoverage_Strategy, \
             InterceptThenCopy_Strategy, CoverByQuarters_Strategy, STC_Strategy,VerticalNonCircularCoverage_Strategy,\
             CircleInsideFromCornerFarthestFromIo_Strategy, CircleOutsideFromBoardCenter_Strategy,\
             VerticalCoverageFromCornerFarthestFromIo_Strategy, CircleOutsideFromCornerFarthestFromIo_Strategy, \
             CircleOutsideFromIo_Strategy, CircleOutsideFromCornerAdjacentToIo_Strategy, \
-            GrowingDiagonalsCornerToCorner_Strategy
+            LCP_Strategy, LongestToReach_Strategy, TrulyRandom_Strategy
 
         if strategy_enum == StrategyEnum.VerticalCoverageCircular:
             return VerticalCircularCoverage_Strategy.VerticalCircularCoverage_Strategy()
