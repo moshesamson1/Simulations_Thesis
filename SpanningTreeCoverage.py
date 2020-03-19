@@ -2,7 +2,10 @@
 from random import shuffle
 # import matplotlib.pyplot as plt
 from math import floor
-import Entities
+from Simulations_Thesis import Entities
+import random
+
+
 # import os
 
 
@@ -226,7 +229,17 @@ def create_covering_path(mst_edges_shallow_graph, initial_slot):
         if slot == origin_slot:
             break
 
+    # flip path direction half of the time
+    if random.random() < 0.5:
+        covering_path = flip_path(covering_path)
+
     return covering_path
+
+def flip_path(path):
+    return_path = []
+    return_path.append(path[0])
+    return_path.extend([path[i] for i in range(len(path)-1,0,-1)])
+    return return_path
 
 
 def get_edges_for_full_graph(width, height):

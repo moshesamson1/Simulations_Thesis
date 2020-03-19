@@ -9,4 +9,6 @@ __all__ = ["CircleOutsideFromIo_Strategy",
            "CircleOutsideFromBoardCenter_Strategy",
            "VerticalCoverageFromCornerFarthestFromIo_Strategy",
            "CircleOutsideFromCornerFarthestFromIo_Strategy",
-           "GrowingDiagonalsCornerToCorner_Strategy"]
+           "LCP_Strategy",
+           "LongestToReach_Strategy",
+           "TrulyRandom_Strategy"]

@@ -1,16 +1,19 @@
+from Simulations_Thesis.Entities import Board, StrategyEnum, Agent, Slot, Game
+from random import randint
+import random as rnd
+from joblib import Parallel, delayed
 import multiprocessing
+import numpy as np
+from Simulations_Thesis import SpanningTreeCoverage
 import operator
 import os
-import random as rnd
-from random import randint
-
-import itertools
-import numpy as np
 import time
-from joblib import Parallel, delayed
+import seaborn as sb
+import matplotlib.pyplot as plt
+import itertools
 
-import SpanningTreeCoverage
-from Entities import Board, StrategyEnum, Agent, Slot, Game, send_files_via_email, DisplayingClass
+import Simulations_Thesis.SpanningTreeCoverage
+from Simulations_Thesis.Entities import Board, StrategyEnum, Agent, Slot, Game
 
 So_seed = 123456789
 
@@ -290,8 +293,8 @@ def compute_and_analyze_results_given_o_position(seeds_amount, i_o, _board_size,
     t1 = time.time()
     # print "elapsed: " + str(t1 - t0)
 
-    if send_email:
-        send_files_via_email(text="Execution took " + str(t1 - t0) + " seconds. max_val: " + str(max_val), title=label)
+    # if send_email:
+    #     send_files_via_email(text="Execution took " + str(t1 - t0) + " seconds. max_val: " + str(max_val), title=label)
 
         # print "\n==================================================================================================\n"
 
@@ -531,12 +534,155 @@ def compare_between_coverage_methods(leader_s1: StrategyEnum, leader_s2: Strateg
 
     DisplayingClass.get_plt().show()
 
+from tqdm import tqdm
+def take_snapshots():
+    num_samples=100
+
+    random_results = []
+    steps_times_o={}
+    steps_times_r={}
+    for i in range(1024):
+        steps_times_o[i]=[]
+    for i in range(1056):
+        steps_times_r[i]=[]
+
+    for _ in tqdm(range(num_samples)):
+        b = Board(32, 32)
+        agentO = Agent("O", StrategyEnum.RandomSTC, 31, 31, board=b)
+        agentR = Agent("R", StrategyEnum.LONGEST_TO_REACH, 0, 0, board=b, agent_o=agentO)
+        game = Game(b, agentR, agentO)
+        game.run_game(enforce_paths_length=False)
+        for os in range(len(agentO.steps)):
+            step = agentO.steps[os]
+            steps_times_o[os].append(step)
+
+        random_results.append(game.get_r_gain())
+
+
+    b = Board(32, 32)
+    agentO = Agent("O", StrategyEnum.RandomSTC, 31, 31, board=b)
+    agentR = Agent("R", StrategyEnum.LONGEST_TO_REACH, 0, 0, board=b, agent_o=agentO)
+    for os in range(len(agentR.steps)):
+        step = agentR.steps[os]
+        steps_times_r[os].append(step)
+
+    from collections import Counter
+    iterations = float(num_samples)
+    to_t = []
+
+    # for cell c, how much strategies cover it by time t\
+    for t in tqdm(range(1024)):
+        to_t.extend(steps_times_o[t])
+        c=Counter(to_t)
+        probes = [[c[Slot(i, j)] / iterations for j in range(32)] for i in range(32)]
+        probes.reverse()
+        sb.heatmap(probes, yticklabels=False, xticklabels=False)
+        plt.savefig('data_O/time_%s'%t)
+        plt.close()
+
+    # for t in tqdm(range(1056)):
+    #     to_t.extend(steps_times_r[t])
+    #     c=Counter(to_t)
+    #     probes = [[c[Slot(i, j)] / iterations for j in range(32)] for i in range(32)]
+    #     probes.reverse()
+    #     sb.heatmap(probes,yticklabels=False, xticklabels=False)
+    #     plt.savefig('data_R/time_%s'%t)
+    #     plt.close()
+
+
+    # print(steps_times_o)
+    # print((sum(random_results) / float(len(random_results))) / 1024.0)
+
+def validate_lcp():
+    num_samples=2
+
+    random_results = []
+    for _ in tqdm(range(num_samples)):
+        b = Board(32, 32)
+        agentO = Agent("O", StrategyEnum.RandomSTC, 31, 31, board=b)
+        agentR = Agent("R", StrategyEnum.RandomSTC, 0, 0, board=b, agent_o=agentO)
+        game = Game(agentR, agentO, (32,32))
+        game.run_game(enforce_paths_length=False)
+        random_results.append(game.get_r_gain())
+    print((sum(random_results) / float(len(random_results))) / 1024.0)
+
+    lcp_results = []
+    for _ in tqdm(range(num_samples)):
+        b = Board(32,32)
+        agentO = Agent("O",StrategyEnum.RandomSTC, 31, 31, board=b)
+        agentR = Agent("R",StrategyEnum.LCP , 0, 0, board=b, agent_o=agentO)
+        game = Game(agentR, agentO, (32,32))
+        game.run_game(enforce_paths_length=False)
+        lcp_results.append(game.get_r_gain())
+    print((sum(lcp_results)/float(len(lcp_results)))/1024.0)
+
+    ltr_results = []
+    for _ in tqdm(range(num_samples)):
+        b = Board(32, 32)
+        agentO = Agent("O", StrategyEnum.RandomSTC, 31, 31, board=b)
+        agentR = Agent("R", StrategyEnum.LONGEST_TO_REACH, 0, 0, board=b, agent_o=agentO)
+        game = Game(agentR, agentO, (32,32))
+        game.run_game(enforce_paths_length=False)
+        ltr_results.append(game.get_r_gain())
+    print((sum(ltr_results) / float(len(ltr_results))) / 1024.0)
+
+    circVert_results = []
+    for _ in tqdm(range(num_samples)):
+        b = Board(32, 32)
+        agentO = Agent("O", StrategyEnum.RandomSTC, 31, 31, board=b)
+        agentR = Agent("R", StrategyEnum.VerticalCoverageCircular, 0, 0, board=b, agent_o=agentO)
+        game = Game(agentR, agentO, (32,32))
+        game.run_game(enforce_paths_length=False)
+        circVert_results.append(game.get_r_gain())
+    print((sum(circVert_results) / float(len(circVert_results))) / 1024.0)
+
+    noncircVert_results = []
+    for _ in tqdm(range(num_samples)):
+        b = Board(32, 32)
+        agentO = Agent("O", StrategyEnum.RandomSTC, 31, 31, board=b)
+        agentR = Agent("R", StrategyEnum.VerticalCoverageNonCircular, 0, 0, board=b, agent_o=agentO)
+        game = Game(agentR, agentO, (32,32))
+        game.run_game(enforce_paths_length=False)
+        noncircVert_results.append(game.get_r_gain())
+    print((sum(noncircVert_results) / float(len(noncircVert_results))) / 1024.0)
+
+    circHor_results = []
+    for _ in tqdm(range(num_samples)):
+        b = Board(32, 32)
+        agentO = Agent("O", StrategyEnum.RandomSTC, 31, 31, board=b)
+        agentR = Agent("R", StrategyEnum.HorizontalCoverageCircular, 0, 0, board=b, agent_o=agentO)
+        game = Game(agentR, agentO, (32,32))
+        game.run_game(enforce_paths_length=False)
+        circHor_results.append(game.get_r_gain())
+    print((sum(circHor_results) / float(len(circHor_results))) / 1024.0)
+
+    print("full data: ")
+    for l in zip(random_results, lcp_results, ltr_results, circVert_results, noncircVert_results, circHor_results):
+        print(str(l)[1:-1])
+
+def check_tdv():
+    b = Board(32, 32)
+    agentO = Agent("O", StrategyEnum.RandomSTC, 31,31, board=b)
+    agentR = Agent("R", StrategyEnum.RandomSTC, 0, 0, board=b, agent_o=agentO)
+    print(agentR.get_tdv())
+
+    b = Board(32, 32)
+    agentO = Agent("O", StrategyEnum.RandomSTC, 31,31, board=b)
+    agentR = Agent("R", StrategyEnum.LCP, 0, 0, board=b, agent_o=agentO)
+    print(agentR.get_tdv())
+
+    b = Board(32, 32)
+    agentO = Agent("O", StrategyEnum.RandomSTC, 31,31, board=b)
+    agentR = Agent("R", StrategyEnum.LONGEST_TO_REACH, 0, 0, board=b, agent_o=agentO)
+    print(agentR.get_tdv())
 
 def main():
-    compare_between_coverage_methods(StrategyEnum.VerticalCoverageCircular,
-                                     StrategyEnum.HorizontalCoverageCircular,
-                                     StrategyEnum.SemiCyclingFromFarthestCorner_OpponentAware)
-
+    # compare_between_coverage_methods(StrategyEnum.VerticalCoverageCircular,
+    #                                  StrategyEnum.HorizontalCoverageCircular,
+    #                                  StrategyEnum.SemiCyclingFromFarthestCorner_OpponentAware)
+    # take_snapshots()
+    validate_lcp()
+    # check_tdv()
 
 if __name__ == "__main__":
     main()

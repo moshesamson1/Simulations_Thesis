@@ -1,5 +1,4 @@
-from Entities import Strategy, Slot
-from abc import abstractmethod
+from Simulations_Thesis.Entities import Strategy, Slot
 
 
 class VerticalCircularCoverage_Strategy(Strategy):

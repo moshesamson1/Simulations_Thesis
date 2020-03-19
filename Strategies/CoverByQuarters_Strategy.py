@@ -1,4 +1,4 @@
-from Entities import Slot, Strategy
+from Simulations_Thesis.Entities import Slot, Strategy
 from abc import abstractmethod
 
 class CoverByQuarters_Strategy(Strategy):

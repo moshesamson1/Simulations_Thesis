@@ -1,5 +1,5 @@
-from Entities import Strategy, Slot
-from abc import abstractmethod
+from Simulations_Thesis.Entities import Strategy, Slot
+
 
 class CircleOutsideFromBoardCenter_Strategy(Strategy):
     def get_steps(self, agent_r, board_size = 50, agent_o = None):
@@ -11,7 +11,9 @@ class CircleOutsideFromBoardCenter_Strategy(Strategy):
             :return: list of steps
             """
 
-        next_slot = Slot(agent_r.InitPosX, agent_r.InitPosY)
+        self.steps.extend(self.go_from_a_to_b(Slot(agent_r.InitPosX, agent_r.InitPosY), Slot(board_size/2, board_size/2)))
+
+        next_slot = self.steps[-1]
         # next_slot = Slot(36,6)
 
         # start by going toward the center

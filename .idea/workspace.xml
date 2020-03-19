@@ -8,8 +8,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/Simulations.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Simulations.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Entities.py" beforeDir="false" afterPath="$PROJECT_DIR$/Entities.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_class.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_class.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Strategies/CircleOutsideFromCornerFarthestFromIo_Strategy.py" beforeDir="false" afterPath="$PROJECT_DIR$/Strategies/CircleOutsideFromCornerFarthestFromIo_Strategy.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -25,13 +24,13 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main_class.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="166">
-              <caret line="500" column="30" selection-start-line="500" selection-start-column="30" selection-end-line="500" selection-end-column="30" />
+            <state relative-caret-position="6840">
+              <caret line="468" column="47" selection-start-line="468" selection-start-column="47" selection-end-line="468" selection-end-column="47" />
               <folding>
-                <element signature="e#0#16#0" expanded="true" />
+                <element signature="e#0#81#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -40,8 +39,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Entities.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1319">
-              <caret line="150" column="62" lean-forward="true" selection-start-line="150" selection-start-column="62" selection-end-line="150" selection-end-column="62" />
+            <state relative-caret-position="870">
+              <caret line="66" column="33" selection-start-line="66" selection-start-column="33" selection-end-line="66" selection-end-column="33" />
               <folding>
                 <element signature="e#0#14#0" expanded="true" />
                 <element signature="e#6963#7605#0" />
@@ -51,29 +50,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Strategies/CircleOutsideFromCornerAdjacentToIo_Strategy.py">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/Strategies/CircleOutsideFromCornerFarthestFromIo_Strategy.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="75">
-              <caret line="8" selection-start-line="8" selection-end-line="8" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Strategies/CoverByQuarters_Strategy.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-885">
-              <caret line="27" column="34" selection-start-line="27" selection-start-column="34" selection-end-line="27" selection-end-column="34" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Strategies/VerticalCoverageFromCornerFarthestFromIo_Strategy.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-240">
-              <caret line="18" column="61" selection-start-line="18" selection-start-column="61" selection-end-line="18" selection-end-column="61" />
+            <state relative-caret-position="164">
+              <caret line="35" column="31" selection-start-line="35" selection-start-column="31" selection-end-line="35" selection-end-column="31" />
             </state>
           </provider>
         </entry>
@@ -89,36 +70,17 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>(next_slot[0], next_slot[1] - 1)</find>
-      <find>next_slot[1]</find>
-      <find>next_slot == (</find>
-      <find>CircleOutsideFromCornerFarthestFromIo_Strategy</find>
-      <find>run</find>
-      <find>xrange</find>
-      <find>enum</find>
-      <find>isinstance</find>
-      <find>[1]</find>
+      <find>i_r_x</find>
+      <find>i_r_y</find>
       <find>run_agent_over_board_interception_strategy</find>
       <find>b_s</find>
       <find>heat</find>
       <find>Agent</find>
-      <find>farth</find>
-      <find>Board</find>
-      <find>farthest_corner</find>
-      <find>corner</find>
-      <find>get_farthest_corner</find>
+      <find>get_average_gain_no_information_job</find>
+      <find>check</find>
+      <find>job</find>
       <find>SemiCyclingFromFarthestCorner_OpponentAware</find>
-      <find>farthe</find>
-      <find>self.steps</find>
-      <find>strategy</find>
-      <find>self.steps.append</find>
-      <find>row`</find>
-      <find>get_adjacent_corner</find>
-      <find>run_game</find>
-      <find>strate</find>
-      <find>Strategy:</find>
-      <find>heat_map</find>
-      <find>add_</find>
+      <find>direction</find>
     </findStrings>
     <replaceStrings>
       <replace>StrategyEnum.RandomSTC</replace>
@@ -169,13 +131,15 @@
         <option value="$PROJECT_DIR$/Strategies/HorizontalCircularCoverage_Strategy.py" />
         <option value="$PROJECT_DIR$/SpanningTreeCoverage.py" />
         <option value="$PROJECT_DIR$/Strategies/__init__.py" />
+        <option value="$PROJECT_DIR$/Strategies/STC_Strategy.py" />
+        <option value="$PROJECT_DIR$/Strategies/VerticalCoverageFromCornerFarthestFromIo_Strategy.py" />
+        <option value="$PROJECT_DIR$/Strategies/CircleOutsideFromIo_Strategy.py" />
+        <option value="$PROJECT_DIR$/Strategies/MinimalCircleOutsideFromIO_Strategy.pyi" />
         <option value="$PROJECT_DIR$/Strategies/CircleOutsideFromBoardCenter_Strategy.py" />
-        <option value="$PROJECT_DIR$/Strategies/InterceptThenCopy_Strategy.py" />
-        <option value="$PROJECT_DIR$/Strategies/CircleOutsideFromCornerFarthestFromIo_Strategy.py" />
-        <option value="$PROJECT_DIR$/Strategies/CircleOutsideFromCornerAdjacentToIo_Strategy.py" />
-        <option value="$PROJECT_DIR$/Strategies/CoverByQuarters_Strategy.py" />
-        <option value="$PROJECT_DIR$/Entities.py" />
         <option value="$PROJECT_DIR$/main_class.py" />
+        <option value="$PROJECT_DIR$/intro2crypto_ex1.py" />
+        <option value="$PROJECT_DIR$/Entities.py" />
+        <option value="$PROJECT_DIR$/Strategies/CircleOutsideFromCornerFarthestFromIo_Strategy.py" />
       </list>
     </option>
   </component>
@@ -231,8 +195,8 @@
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="SearchEverywhereHistoryKey" value="ident&#9;null&#9;null&#10;replace&#9;ACTION&#9;Replace&#10;settings&#9;ACTION&#9;WelcomeScreen.Settings&#10;interpreter&#9;null&#9;null&#10;github&#9;ACTION&#9;Github.Share" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/Strategies" />
+    <property name="SearchEverywhereHistoryKey" value="get_interception_point&#9;null&#9;null&#10;go_fr&#9;null&#9;null&#10;replace&#9;null&#9;null&#10;settings&#9;ACTION&#9;WelcomeScreen.Settings&#10;interpreter&#9;null&#9;null&#10;github&#9;ACTION&#9;Github.Share" />
+    <property name="last_opened_file_path" value="/usr/bin/python2.7" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
@@ -357,10 +321,10 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.main_class" />
       <item itemvalue="Python.Entities" />
-      <item itemvalue="Python.SpanningTree" />
       <item itemvalue="Python.SpanningTreeCoverage" />
+      <item itemvalue="Python.SpanningTree" />
+      <item itemvalue="Python.main_class" />
     </list>
     <recent_temporary>
       <list>
@@ -518,24 +482,42 @@
     <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.24944155" />
-      <window_info id="Structure" order="1" weight="0.25" />
-      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info id="Structure" order="1" weight="0.24960877" />
+      <window_info id="Favorites" order="2" side_tool="true" weight="0.32942098" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" sideWeight="0.46656418" weight="0.32700422" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.801936" visible="true" weight="0.35786435" />
-      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.6239762" weight="0.3982684" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8078401" weight="0.3001443" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.6256726" weight="0.3102453" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.19806403" side_tool="true" visible="true" weight="0.35786435" />
-      <window_info anchor="bottom" id="Messages" order="8" />
-      <window_info anchor="bottom" id="Python Console" order="9" weight="0.32756132" />
-      <window_info anchor="bottom" id="Terminal" order="10" weight="0.32935917" />
-      <window_info anchor="bottom" id="Version Control" order="11" weight="0.32911393" />
+      <window_info anchor="bottom" id="TODO" order="6" weight="0.32934132" />
+      <window_info active="true" anchor="bottom" id="Event Log" order="7" sideWeight="0.60610574" side_tool="true" visible="true" weight="0.45021644" />
+      <window_info anchor="bottom" id="Python Console" order="8" weight="0.32934132" />
+      <window_info anchor="bottom" id="Terminal" order="9" weight="0.32934132" />
+      <window_info anchor="bottom" id="Version Control" order="10" sideWeight="0.39389426" weight="0.2005772" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
     </layout>
+    <layout-to-restore>
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.24960877" />
+      <window_info id="Structure" order="1" weight="0.24960877" />
+      <window_info id="Favorites" order="2" side_tool="true" weight="0.32942098" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" sideWeight="0.46656418" weight="0.32700422" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.8078401" visible="true" weight="0.3008982" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.6256726" weight="0.35628742" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" weight="0.32934132" />
+      <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.19215988" side_tool="true" weight="0.4505988" />
+      <window_info anchor="bottom" id="Python Console" order="8" weight="0.32934132" />
+      <window_info anchor="bottom" id="Terminal" order="9" weight="0.32934132" />
+      <window_info anchor="bottom" id="Version Control" order="10" weight="0.13173653" />
+      <window_info anchor="right" id="Commander" order="0" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+    </layout-to-restore>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Improving basic code for simulations. Sending and saving figures independently." />
@@ -739,23 +721,6 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/SpanningTreeCoverage.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="45">
-          <caret line="6" selection-start-line="6" selection-end-line="6" />
-          <folding>
-            <element signature="e#24#50#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Strategies/CircleOutsideFromBoardCenter_Strategy.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="615">
-          <caret line="42" column="1" selection-start-line="42" selection-start-column="1" selection-end-line="42" selection-end-column="1" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Strategies/HorizontalCircularCoverage_Strategy.py">
-      <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="705">
           <caret line="47" column="29" selection-start-line="47" selection-start-column="29" selection-end-line="47" selection-end-column="29" />
         </state>
@@ -796,25 +761,34 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Entities.py">
+    <entry file="file://$PROJECT_DIR$/intro2crypto_ex1.py" />
+    <entry file="file://$PROJECT_DIR$/Strategies/CircleOutsideFromIo_Strategy.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main_class.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1319">
-          <caret line="150" column="62" lean-forward="true" selection-start-line="150" selection-start-column="62" selection-end-line="150" selection-end-column="62" />
+        <state relative-caret-position="6840">
+          <caret line="468" column="47" selection-start-line="468" selection-start-column="47" selection-end-line="468" selection-end-column="47" />
           <folding>
-            <element signature="e#0#14#0" expanded="true" />
-            <element signature="e#6963#7605#0" />
-            <element signature="e#7682#8057#0" />
+            <element signature="e#0#81#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main_class.py">
+    <entry file="file://$PROJECT_DIR$/Entities.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="166">
-          <caret line="500" column="30" selection-start-line="500" selection-start-column="30" selection-end-line="500" selection-end-column="30" />
+        <state relative-caret-position="870">
+          <caret line="66" column="33" selection-start-line="66" selection-start-column="33" selection-end-line="66" selection-end-column="33" />
           <folding>
-            <element signature="e#0#16#0" expanded="true" />
+            <element signature="e#0#23#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Strategies/CircleOutsideFromCornerFarthestFromIo_Strategy.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="164">
+          <caret line="35" column="31" selection-start-line="35" selection-start-column="31" selection-end-line="35" selection-end-column="31" />
         </state>
       </provider>
     </entry>

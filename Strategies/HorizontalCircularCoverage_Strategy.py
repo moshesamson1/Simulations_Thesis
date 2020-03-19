@@ -1,4 +1,4 @@
-from Entities import Strategy, Slot
+from Simulations_Thesis.Entities import Strategy, Slot
 
 
 class HorizontalCircularCoverage_Strategy(Strategy):
