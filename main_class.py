@@ -1,19 +1,16 @@
-from Simulations_Thesis.Entities import Board, StrategyEnum, Agent, Slot, Game
 from random import randint
 import random as rnd
+
+from coverage_strategies import SpanningTreeCoverage
 from joblib import Parallel, delayed
 import multiprocessing
 import numpy as np
-from Simulations_Thesis import SpanningTreeCoverage
 import operator
 import os
 import time
-import seaborn as sb
 import matplotlib.pyplot as plt
 import itertools
-
-import Simulations_Thesis.SpanningTreeCoverage
-from Simulations_Thesis.Entities import Board, StrategyEnum, Agent, Slot, Game
+from coverage_strategies.Entities import Board, Game, Agent, Slot, StrategyEnum
 
 So_seed = 123456789
 
@@ -532,7 +529,6 @@ def compare_between_coverage_methods(leader_s1: StrategyEnum, leader_s2: Strateg
     leader_agent_s2.display_heat_map(4, 1)
     a.display_cross_heatmap(leader_agent_s2, 4, 2, [0.5, 0.5])
 
-    DisplayingClass.get_plt().show()
 
 from tqdm import tqdm
 def take_snapshots():
